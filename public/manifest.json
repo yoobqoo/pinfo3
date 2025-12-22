@@ -1,0 +1,24 @@
+
+{
+  "short_name": "PinAI",
+  "name": "PinAI: Intelligent Bookmark Manager",
+  "icons": [
+    {
+      "src": "https://pinfo.vercel.app/icon-192.png",
+      "type": "image/png",
+      "sizes": "192x192",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "https://pinfo.vercel.app/icon-512.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#F2F0E9",
+  "display": "standalone",
+  "scope": "/",
+  "theme_color": "#1A1918",
+  "description": "AI-powered bookmarking and analysis tool."
+}
