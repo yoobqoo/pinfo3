@@ -1,0 +1,5 @@
+{
+  "name": "pinfo 3",
+  "description": "An intelligent bookmark manager that uses Gemini AI to analyze, categorize, and summarize URLs automatically.",
+  "requestFramePermissions": []
+}
