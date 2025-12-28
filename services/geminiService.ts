@@ -3,11 +3,12 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { AIAnalysisResult, Platform } from "../types";
 
 /**
- * 1. Metadata Scraper - Optimized for Parallel Speed
+ * 1. Metadata Scraper - Focused on Stability for Threads (OG based)
  */
 export const scrapeMetadata = async (url: string) => {
     const isYoutube = /^(https?:\/\/)?(www\.|m\.)?(youtube\.com|youtu\.be)\/.+$/.test(url);
     const isNaverBlog = url.includes("blog.naver.com");
+    const isThreads = url.includes("threads.net") || url.includes("threads.com");
 
     const fetchWithProxy = async (targetUrl: string): Promise<string | null> => {
         const proxies = [
@@ -15,8 +16,6 @@ export const scrapeMetadata = async (url: string) => {
             `https://corsproxy.io/?${encodeURIComponent(targetUrl)}`
         ];
         
-        // Parallel fetching to use the fastest proxy response
-        // Fix: Replaced Promise.any with manual implementation to resolve TS error: Property 'any' does not exist on type 'PromiseConstructor'
         try {
             return await new Promise<string>((resolve, reject) => {
                 let rejectedCount = 0;
@@ -60,11 +59,12 @@ export const scrapeMetadata = async (url: string) => {
         return {
             title: decode(getTag('title') || html.match(titleRegex)?.[1]),
             image: decode(getTag('image')),
-            description: decode(getTag('description'))
+            description: decode(getTag('description')),
+            ogTitle: decode(getTag('title'))
         };
     };
 
-    // A. YouTube Case (Oembed is usually fastest)
+    // A. YouTube Case
     if (isYoutube) {
         try {
             const oembedEndpoint = `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`;
@@ -76,7 +76,44 @@ export const scrapeMetadata = async (url: string) => {
         } catch (e) {}
     }
 
-    // B. Naver Blog Special Case
+    // B. Threads Case (OG Metadata Strategy)
+    if (isThreads) {
+        // Extract postId and author from URL
+        // Example: https://www.threads.net/@user/post/POST_ID
+        const urlObj = new URL(url);
+        const pathParts = urlObj.pathname.split('/').filter(p => p);
+        const authorMatch = urlObj.pathname.match(/\/(@[^\/]+)/);
+        const postMatch = urlObj.pathname.match(/\/post\/([^\/]+)/);
+
+        const author = authorMatch ? authorMatch[1] : undefined;
+        const postId = postMatch ? postMatch[1] : undefined;
+        const canonicalUrl = `${urlObj.origin}${urlObj.pathname}`; // Remove query params
+
+        const html = await fetchWithProxy(url);
+        if (html) {
+            const meta = extractMeta(html);
+            let cleanTitle = meta.ogTitle || meta.title || "Threads Post";
+            
+            // Clean title if it contains "on Threads"
+            if (cleanTitle.includes('on Threads')) {
+                cleanTitle = cleanTitle.split('on Threads')[0].trim();
+            }
+
+            return {
+                title: cleanTitle,
+                image: meta.image || undefined,
+                description: meta.description || "",
+                platform: 'threads' as Platform,
+                author: author,
+                authorProfileUrl: author ? `https://www.threads.net/${author}` : undefined,
+                platformId: postId,
+                fullContentCollected: false, // Threads server-side limitation
+                canonicalUrl: canonicalUrl
+            };
+        }
+    }
+
+    // C. Naver Blog Special Case
     if (isNaverBlog) {
         let mainHtml = await fetchWithProxy(url);
         if (mainHtml) {
@@ -103,12 +140,14 @@ export const scrapeMetadata = async (url: string) => {
         }
     }
 
-    // C. Generic Case
+    // D. Generic Case
     const html = await fetchWithProxy(url);
     const meta = extractMeta(html || "");
     const lowerUrl = url.toLowerCase();
     let platform: Platform = 'other';
+    
     if (lowerUrl.includes('instagram')) platform = 'instagram';
+    else if (lowerUrl.includes('threads')) platform = 'threads';
     else if (lowerUrl.includes('twitter') || lowerUrl.includes('x.com')) platform = 'twitter';
     else if (lowerUrl.includes('linkedin')) platform = 'linkedin';
     else if (lowerUrl.includes('github')) platform = 'github';
@@ -125,17 +164,20 @@ export const scrapeMetadata = async (url: string) => {
 };
 
 /**
- * 2. AI Insight Generator - Optimized for Speed
+ * 2. AI Insight Generator
  */
 export const generateAIInsight = async (url: string, title: string, context: string, platform: Platform) => {
     try {
-        // Fix: Use process.env.API_KEY directly when initializing GoogleGenAI as per SDK guidelines
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
         const response = await ai.models.generateContent({
             model: "gemini-3-flash-preview",
             contents: `URL: ${url}\nTitle: ${title}\nContext: ${context}\nPlatform: ${platform}`,
             config: {
-                systemInstruction: `Analyze concisely. Korean. 3 bullets. 3 tags. JSON only.`,
+                systemInstruction: `Analyze concisely in Korean.
+                - Summary: 3 key bullet points.
+                - Tags: 3 relevant keywords.
+                - Tone: Insightful and organized.
+                - Response must be pure JSON.`,
                 responseMimeType: "application/json",
                 responseSchema: {
                     type: Type.OBJECT,
@@ -148,7 +190,6 @@ export const generateAIInsight = async (url: string, title: string, context: str
             }
         });
 
-        // Fix: Access response text via the .text property (not a method) and trim before parsing
         if (response.text) return JSON.parse(response.text.trim());
     } catch (e) {
         console.error("AI Error:", e);

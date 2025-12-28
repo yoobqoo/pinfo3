@@ -1,4 +1,5 @@
-export type Platform = 'youtube' | 'instagram' | 'twitter' | 'linkedin' | 'github' | 'blog' | 'news' | 'shopping' | 'other';
+
+export type Platform = 'youtube' | 'instagram' | 'threads' | 'twitter' | 'linkedin' | 'github' | 'blog' | 'news' | 'shopping' | 'other';
 
 export type PlanType = 'free' | 'pro';
 
@@ -25,7 +26,11 @@ export interface Pin {
   createdAt: number;
   thumbnailUrl?: string;
   isAnalyzing?: boolean;
-  note?: string; // New: Simple note or to-do text
+  note?: string;
+  author?: string; // 작성자 계정 명 (@username)
+  authorProfileUrl?: string; // 작성자 프로필 주소
+  platformId?: string; // 게시물 고유 ID (postId)
+  fullContentCollected?: boolean; // 본문 전문 수집 성공 여부
 }
 
 export interface Project {

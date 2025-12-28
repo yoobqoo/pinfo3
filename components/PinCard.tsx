@@ -2,12 +2,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Pin, Platform } from '../types';
 import { PlatformIcon } from './Icons';
-import { ExternalLink, ArrowUpRight, Loader2, Sparkles, Link as LinkIcon, Image as ImageIcon, ChevronDown, ChevronUp, StickyNote, Check } from 'lucide-react';
+import { ExternalLink, ArrowUpRight, Loader2, Sparkles, Link as LinkIcon, Image as ImageIcon, ChevronDown, ChevronUp, StickyNote, Check, AlertCircle, Trash2 } from 'lucide-react';
 
 interface PinCardProps {
   pin: Pin;
   color: string;
   onUpdateNote?: (pinId: string, note: string) => void;
+  onDeletePin?: (pinId: string) => void;
 }
 
 const isLightColor = (hex: string) => {
@@ -15,7 +16,7 @@ const isLightColor = (hex: string) => {
   return lightColors.includes(hex.toUpperCase()) || lightColors.includes(hex);
 };
 
-export const PinCard: React.FC<PinCardProps> = ({ pin, color, onUpdateNote }) => {
+export const PinCard: React.FC<PinCardProps> = ({ pin, color, onUpdateNote, onDeletePin }) => {
   const [imgError, setImgError] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const [localNote, setLocalNote] = useState(pin.note || '');
@@ -31,7 +32,6 @@ export const PinCard: React.FC<PinCardProps> = ({ pin, color, onUpdateNote }) =>
   const textColorClass = isLight ? 'text-gray-900' : 'text-white';
   const subTextColorClass = isLight ? 'text-gray-700' : 'text-white/80';
   
-  // HashTags significantly darkened for better separation from background and note
   const tagClass = isLight ? 'bg-black/35 text-white/90 shadow-sm' : 'bg-black/50 text-white shadow-sm';
   
   const iconColor = isLight ? 'text-black' : 'text-white';
@@ -42,7 +42,6 @@ export const PinCard: React.FC<PinCardProps> = ({ pin, color, onUpdateNote }) =>
     if (timerRef.current) clearTimeout(timerRef.current);
     onUpdateNote?.(pin.id, localNote);
     
-    // Show success feedback
     setShowSavedToast(true);
     setTimeout(() => setShowSavedToast(false), 2000);
   };
@@ -57,6 +56,13 @@ export const PinCard: React.FC<PinCardProps> = ({ pin, color, onUpdateNote }) =>
     }, 2000);
   };
 
+  const handleDelete = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm("이 핀을 삭제하시겠습니까?")) {
+      onDeletePin?.(pin.id);
+    }
+  };
+
   return (
     <div 
       className={`group relative flex flex-col rounded-[32px] overflow-hidden shadow-2xl transition-all duration-500 cursor-pointer border-t border-white/10 ${textColorClass} ${isExpanded ? 'min-h-[500px]' : 'min-h-[350px]'}`}
@@ -68,21 +74,34 @@ export const PinCard: React.FC<PinCardProps> = ({ pin, color, onUpdateNote }) =>
       {/* Top Content: Always visible */}
       <div className="p-6 pb-4 relative z-20 flex flex-col gap-4">
         <div className="flex items-start justify-between">
-            <div className="flex items-center space-x-2 opacity-90">
-                <div className={`p-1.5 rounded-full ${isLight ? 'bg-white/40' : 'bg-black/20'}`}>
+            <div className="flex items-center space-x-2 opacity-90 overflow-hidden">
+                <div className={`p-1.5 rounded-full shrink-0 ${isLight ? 'bg-white/40' : 'bg-black/20'}`}>
                    <PlatformIcon platform={pin.platform} className={`w-4 h-4 ${iconColor}`} />
                 </div>
-                <span className="text-[10px] font-black uppercase tracking-widest opacity-60">{pin.platform}</span>
+                <div className="flex flex-col">
+                  <span className="text-[10px] font-black uppercase tracking-widest opacity-60 leading-none">{pin.platform}</span>
+                  {pin.author && (
+                    <span className="text-[11px] font-bold truncate max-w-[120px]">{pin.author}</span>
+                  )}
+                </div>
             </div>
-            <a 
-              href={pin.originalUrl} 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className={`p-2 rounded-full ${isLight ? 'bg-black/15 text-black' : 'bg-white/20 text-white'} transition-all hover:scale-110 active:scale-95`}
-              onClick={(e) => e.stopPropagation()}
-            >
-                <ArrowUpRight className="w-4 h-4" />
-            </a>
+            <div className="flex items-center gap-2">
+                <button 
+                  onClick={handleDelete}
+                  className={`p-2 rounded-full shrink-0 ${isLight ? 'bg-black/5 text-black/40 hover:text-red-500 hover:bg-black/10' : 'bg-white/10 text-white/40 hover:text-red-400 hover:bg-white/20'} transition-all hover:scale-110 active:scale-95`}
+                >
+                    <Trash2 className="w-4 h-4" />
+                </button>
+                <a 
+                  href={pin.originalUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className={`p-2 rounded-full shrink-0 ${isLight ? 'bg-black/15 text-black' : 'bg-white/20 text-white'} transition-all hover:scale-110 active:scale-95`}
+                  onClick={(e) => e.stopPropagation()}
+                >
+                    <ArrowUpRight className="w-4 h-4" />
+                </a>
+            </div>
         </div>
 
         <div className="space-y-4">
@@ -111,7 +130,7 @@ export const PinCard: React.FC<PinCardProps> = ({ pin, color, onUpdateNote }) =>
       
       <div className={`mx-6 h-px ${dividerClass}`} />
 
-      {/* Bottom Content: AI Insight (Loading state included) */}
+      {/* Bottom Content */}
       <div className={`p-6 pt-4 flex-grow flex flex-col justify-between transition-all duration-500 ${isExpanded ? 'bg-black/15' : 'bg-black/5'}`}>
         {pin.isAnalyzing ? (
             <div className="flex flex-col gap-3 py-2 animate-pulse opacity-70">
@@ -141,6 +160,12 @@ export const PinCard: React.FC<PinCardProps> = ({ pin, color, onUpdateNote }) =>
                     </div>
                     
                     <div className={`transition-all duration-500 ${isExpanded ? '' : 'max-h-[85px] overflow-hidden relative after:absolute after:bottom-0 after:left-0 after:right-0 after:h-8 after:bg-gradient-to-t after:from-inherit after:to-transparent'}`}>
+                        {pin.platform === 'threads' && pin.fullContentCollected === false && (
+                          <div className={`flex items-start gap-1.5 mb-2 p-2 rounded-lg text-[10px] font-bold ${isLight ? 'bg-black/5 text-black/40' : 'bg-white/10 text-white/40'}`}>
+                            <AlertCircle className="w-3 h-3 shrink-0" />
+                            <span>Threads 특성상 요약 정보만 수집되었습니다. 본문 전문은 노트를 활용해 수동으로 입력해 주세요.</span>
+                          </div>
+                        )}
                         <p className={`text-[13.5px] leading-[1.7] ${subTextColorClass} font-medium whitespace-pre-wrap tracking-tight`}>
                             {pin.summary || "분석 결과를 생성 중입니다..."}
                         </p>
@@ -148,7 +173,6 @@ export const PinCard: React.FC<PinCardProps> = ({ pin, color, onUpdateNote }) =>
                 </div>
 
                 <div className="pt-4 flex flex-col gap-4 relative">
-                    {/* Note Input with Enhanced Action Button */}
                     <div 
                         className={`flex items-center gap-2 px-4 py-3 rounded-2xl transition-all ${isLight ? 'bg-black/5 border-black/5' : 'bg-white/10 border-white/5'} border relative group/note`}
                         onClick={(e) => e.stopPropagation()}
@@ -170,7 +194,6 @@ export const PinCard: React.FC<PinCardProps> = ({ pin, color, onUpdateNote }) =>
                         </button>
                     </div>
 
-                    {/* Saved Toast Notification */}
                     {showSavedToast && (
                       <div className="absolute -top-10 left-1/2 -translate-x-1/2 px-4 py-1.5 rounded-full bg-black/80 text-white text-[10px] font-bold flex items-center gap-1.5 animate-in slide-in-from-bottom-2 fade-in duration-300">
                         <Check className="w-3 h-3 text-green-400" strokeWidth={4} />

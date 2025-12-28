@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { 
   Youtube, 
@@ -9,6 +10,7 @@ import {
   Newspaper, 
   ShoppingBag, 
   Link as LinkIcon,
+  AtSign
 } from 'lucide-react';
 import { Platform } from '../types';
 
@@ -17,6 +19,7 @@ export const PlatformIcon = ({ platform, className = "w-4 h-4" }: { platform: Pl
   switch (platform) {
     case 'youtube': return <Youtube className={className} />;
     case 'instagram': return <Instagram className={className} />;
+    case 'threads': return <AtSign className={className} />;
     case 'twitter': return <Twitter className={className} />;
     case 'linkedin': return <Linkedin className={className} />;
     case 'github': return <Github className={className} />;

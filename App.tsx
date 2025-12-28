@@ -4,6 +4,7 @@ import { PinCard } from './components/PinCard';
 import { BottomNav } from './components/BottomNav';
 import { CategoryList } from './components/CategoryList';
 import { SettingsView } from './components/SettingsView';
+import { NotesView } from './components/NotesView';
 import { UpgradeModal } from './components/UpgradeModal';
 import { AuthModal } from './components/AuthModal'; 
 import { Logo } from './components/Logo';
@@ -15,7 +16,8 @@ import {
     createPinInDb,
     updateProjectInDb,
     deleteProjectInDb,
-    updatePinNoteInDb
+    updatePinNoteInDb,
+    deletePinFromDb
 } from './services/supabase';
 import { requestPayment } from './services/payment'; 
 import { Project, Pin, PlanType, Platform } from './types';
@@ -23,7 +25,7 @@ import { Plus, Search, Loader2, ArrowRight, X, Check, ChevronDown, LayoutGrid, S
 
 const STORAGE_KEY = 'pinai_data_v2';
 const PLAN_KEY = 'pinai_plan_v1';
-type Tab = 'pins' | 'category' | 'settings';
+type Tab = 'pins' | 'category' | 'notes' | 'settings';
 
 const FREE_PIN_LIMIT = 30;
 
@@ -123,17 +125,21 @@ const App: React.FC = () => {
 
         const initialPin: Pin = {
             id: tempId,
-            originalUrl: inputUrl,
-            title: meta.title || "제목 없음", 
+            originalUrl: (meta as any).canonicalUrl || inputUrl,
+            title: (meta as any).title || "제목 없음", 
             summary: "",
-            platform: meta.platform, 
+            platform: (meta as any).platform, 
             tags: [],
-            createdAt: Date.now(),
-            thumbnailUrl: meta.image,
+            createdAt: (meta as any).createdAt || Date.now(),
+            thumbnailUrl: (meta as any).image,
+            author: (meta as any).author,
+            authorProfileUrl: (meta as any).authorProfileUrl,
+            platformId: (meta as any).platformId,
+            fullContentCollected: (meta as any).fullContentCollected,
             isAnalyzing: true 
         };
 
-        // 2. IMMEDIATE UI UPDATE (Close modal & Show Card)
+        // 2. IMMEDIATE UI UPDATE
         setProjects(prev => prev.map(proj => {
             if (proj.id === targetProjectId) return { ...proj, pins: [initialPin, ...proj.pins] };
             return proj;
@@ -141,10 +147,10 @@ const App: React.FC = () => {
         setShowInput(false);
         setUrlInput('');
         setActiveProjectId(targetProjectId);
-        setIsSubmitting(false); // Enable faster re-use
+        setIsSubmitting(false);
 
-        // 3. BACKGROUND AI ANALYSIS (Non-blocking)
-        generateAIInsight(inputUrl, meta.title, meta.description, meta.platform).then(async (aiInsight) => {
+        // 3. BACKGROUND AI ANALYSIS
+        generateAIInsight(inputUrl, (meta as any).title, (meta as any).description, (meta as any).platform).then(async (aiInsight) => {
             const finalPin: Pin = { ...initialPin, summary: aiInsight.summary, tags: aiInsight.tags, isAnalyzing: false };
             
             if (session) {
@@ -180,6 +186,14 @@ const App: React.FC = () => {
           pins: proj.pins.map(pin => pin.id === pinId ? { ...pin, note } : pin)
       })));
       if (session) await updatePinNoteInDb(pinId, note);
+  };
+
+  const handleDeletePin = async (pinId: string) => {
+      setProjects(prev => prev.map(proj => ({
+          ...proj,
+          pins: proj.pins.filter(pin => pin.id !== pinId)
+      })));
+      if (session) await deletePinFromDb(pinId);
   };
 
   const handleUpgradePayment = async () => {
@@ -304,7 +318,7 @@ const App: React.FC = () => {
                 ) : (
                     <div className="grid grid-cols-1 gap-6 pb-20">
                         {displayedPins.map((item) => (
-                            <PinCard key={item.id} pin={item} color={item.color} onUpdateNote={handleUpdateNote} />
+                            <PinCard key={item.id} pin={item} color={item.color} onUpdateNote={handleUpdateNote} onDeletePin={handleDeletePin} />
                         ))}
                     </div>
                 )}
@@ -335,6 +349,7 @@ const App: React.FC = () => {
                 }}
             />
         )}
+        {currentTab === 'notes' && <NotesView projects={projects} />}
         {currentTab === 'settings' && <SettingsView userPlan={userPlan} onReset={() => { if(confirm('모든 데이터를 삭제할까요?')) { localStorage.clear(); window.location.reload(); } }} onUpgrade={handleUpgradePayment} onLoginClick={() => setShowAuthModal(true)} session={session} />}
       </main>
       <BottomNav currentTab={currentTab} onTabChange={setCurrentTab} />

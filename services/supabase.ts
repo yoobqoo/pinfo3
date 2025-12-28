@@ -1,3 +1,4 @@
+
 import { createClient } from '@supabase/supabase-js';
 import { Project, Pin } from '../types';
 
@@ -140,5 +141,10 @@ export const createPinInDb = async (userId: string, projectId: string, pin: Pin)
 
 export const updatePinNoteInDb = async (pinId: string, note: string) => {
     const { error } = await supabase.from('pins').update({ note }).eq('id', pinId);
+    return !error;
+};
+
+export const deletePinFromDb = async (pinId: string) => {
+    const { error } = await supabase.from('pins').delete().eq('id', pinId);
     return !error;
 };

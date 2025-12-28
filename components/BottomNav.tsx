@@ -1,7 +1,8 @@
-import React from 'react';
-import { LayoutGrid, FolderOpen, Settings } from 'lucide-react';
 
-type Tab = 'pins' | 'category' | 'settings';
+import React from 'react';
+import { LayoutGrid, FolderOpen, Settings, StickyNote } from 'lucide-react';
+
+type Tab = 'pins' | 'category' | 'notes' | 'settings';
 
 interface BottomNavProps {
   currentTab: Tab;
@@ -11,7 +12,7 @@ interface BottomNavProps {
 export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, onTabChange }) => {
   return (
     <div className="absolute bottom-6 left-0 right-0 flex justify-center z-50 pointer-events-none">
-      <div className="bg-[#1A1918] text-[#E0DCD6] px-8 py-3 rounded-[2rem] shadow-2xl flex items-end gap-8 pointer-events-auto scale-95 md:scale-100 transition-transform">
+      <div className="bg-[#1A1918] text-[#E0DCD6] px-6 py-3 rounded-[2rem] shadow-2xl flex items-end gap-6 pointer-events-auto scale-90 md:scale-100 transition-transform">
         <button 
           onClick={() => onTabChange('pins')}
           className={`flex flex-col items-center gap-1.5 transition-all duration-300 w-12 ${currentTab === 'pins' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
@@ -29,7 +30,17 @@ export const BottomNav: React.FC<BottomNavProps> = ({ currentTab, onTabChange })
           <div className={`p-1 rounded-full ${currentTab === 'category' ? '' : 'bg-transparent'}`}>
             <FolderOpen className="w-6 h-6" strokeWidth={currentTab === 'category' ? 3 : 2} />
           </div>
-          <span className="text-[10px] font-bold tracking-wide uppercase">Category</span>
+          <span className="text-[10px] font-bold tracking-wide uppercase">Group</span>
+        </button>
+
+        <button 
+          onClick={() => onTabChange('notes')}
+          className={`flex flex-col items-center gap-1.5 transition-all duration-300 w-12 ${currentTab === 'notes' ? 'text-white' : 'text-gray-500 hover:text-gray-300'}`}
+        >
+          <div className={`p-1 rounded-full ${currentTab === 'notes' ? '' : 'bg-transparent'}`}>
+            <StickyNote className="w-6 h-6" strokeWidth={currentTab === 'notes' ? 3 : 2} />
+          </div>
+          <span className="text-[10px] font-bold tracking-wide uppercase">Notes</span>
         </button>
 
         <button 
