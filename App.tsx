@@ -12,7 +12,10 @@ import {
     supabase, 
     fetchUserProjects, 
     createProjectInDb, 
-    createPinInDb 
+    createPinInDb,
+    updateProjectInDb,
+    deleteProjectInDb,
+    updatePinNoteInDb
 } from './services/supabase';
 import { requestPayment } from './services/payment'; 
 import { Project, Pin, PlanType, Platform } from './types';
@@ -34,6 +37,7 @@ const App: React.FC = () => {
   const [selectedTargetId, setSelectedTargetId] = useState<string | null>(null);
   
   const [showInput, setShowInput] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   const [showProjectSelector, setShowProjectSelector] = useState(false);
   
@@ -91,6 +95,8 @@ const App: React.FC = () => {
 
   const handleAddPin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
     const inputUrl = urlInput.trim();
     if (!inputUrl) return;
 
@@ -100,90 +106,80 @@ const App: React.FC = () => {
         return;
     }
     
-    const targetProjectId = selectedTargetId;
-    if (!targetProjectId) return;
-
-    // 중복 체크
-    const targetProject = projects.find(p => p.id === targetProjectId);
-    if (targetProject) {
-        const normalizedInput = inputUrl.toLowerCase().replace(/\/$/, "");
-        if (targetProject.pins.some(p => p.originalUrl.toLowerCase().replace(/\/$/, "") === normalizedInput)) {
-            alert("이미 해당 카테고리에 저장된 링크입니다.");
-            return;
-        }
+    const targetProjectId = selectedTargetId || (projects.length > 0 ? projects[0].id : null);
+    if (!targetProjectId) {
+        alert("카테고리를 먼저 생성해주세요.");
+        return;
     }
 
-    setShowInput(false);
-    setUrlInput('');
-    setActiveProjectId(targetProjectId);
+    setIsSubmitting(true);
 
-    // [1단계] 즉각적인 스크래핑 (제목/이미지 UI 먼저 노출)
-    const tempId = Date.now().toString();
-    const meta = await scrapeMetadata(inputUrl);
-
-    const initialPin: Pin = {
-        id: tempId,
-        originalUrl: inputUrl,
-        title: meta.title, 
-        summary: "",
-        platform: meta.platform, 
-        tags: [],
-        createdAt: Date.now(),
-        thumbnailUrl: meta.image,
-        isAnalyzing: true 
-    };
-
-    setProjects(prev => prev.map(proj => {
-        if (proj.id === targetProjectId) return { ...proj, pins: [initialPin, ...proj.pins] };
-        return proj;
-    }));
-
-    // [2단계] 백그라운드 AI 분석 (비동기 수행)
     try {
-      const aiInsight = await generateAIInsight(inputUrl, meta.title, meta.description, meta.platform);
-      
-      const finalPin: Pin = {
-          ...initialPin,
-          summary: aiInsight.summary,
-          tags: aiInsight.tags,
-          isAnalyzing: false
-      };
+        const tempId = Date.now().toString();
+        // 1. FAST METADATA FETCH
+        const meta = await scrapeMetadata(inputUrl);
 
-      if (session) {
-          const dbPin = await createPinInDb(session.user.id, targetProjectId, finalPin);
-          if (dbPin) {
-             setProjects(prev => prev.map(proj => {
-                if (proj.id === targetProjectId) {
-                    return { ...proj, pins: proj.pins.map(pin => pin.id === tempId ? dbPin : pin) };
-                }
-                return proj;
-             }));
-          }
-      } else {
-          setProjects(prev => prev.map(proj => {
-            if (proj.id === targetProjectId) {
-              return { ...proj, pins: proj.pins.map(pin => pin.id === tempId ? finalPin : pin) };
-            }
+        if (!meta) throw new Error("URL 정보를 가져오지 못했습니다.");
+
+        const initialPin: Pin = {
+            id: tempId,
+            originalUrl: inputUrl,
+            title: meta.title || "제목 없음", 
+            summary: "",
+            platform: meta.platform, 
+            tags: [],
+            createdAt: Date.now(),
+            thumbnailUrl: meta.image,
+            isAnalyzing: true 
+        };
+
+        // 2. IMMEDIATE UI UPDATE (Close modal & Show Card)
+        setProjects(prev => prev.map(proj => {
+            if (proj.id === targetProjectId) return { ...proj, pins: [initialPin, ...proj.pins] };
             return proj;
-          }));
-      }
-    } catch (err) {
-      console.error("AI Step Failed", err);
-      setProjects(prev => prev.map(proj => {
-        if (proj.id === targetProjectId) {
-            return {
-                ...proj,
-                pins: proj.pins.map(pin => pin.id === tempId ? { 
-                    ...pin, 
-                    summary: "분석을 완료하지 못했지만 링크가 저장되었습니다.", 
-                    isAnalyzing: false,
-                    tags: ["분석지연"]
-                } : pin)
-            };
-        }
-        return proj;
-      }));
+        }));
+        setShowInput(false);
+        setUrlInput('');
+        setActiveProjectId(targetProjectId);
+        setIsSubmitting(false); // Enable faster re-use
+
+        // 3. BACKGROUND AI ANALYSIS (Non-blocking)
+        generateAIInsight(inputUrl, meta.title, meta.description, meta.platform).then(async (aiInsight) => {
+            const finalPin: Pin = { ...initialPin, summary: aiInsight.summary, tags: aiInsight.tags, isAnalyzing: false };
+            
+            if (session) {
+                const dbPin = await createPinInDb(session.user.id, targetProjectId, finalPin);
+                if (dbPin) {
+                    setProjects(prev => prev.map(proj => {
+                        if (proj.id === targetProjectId) {
+                            return { ...proj, pins: proj.pins.map(pin => pin.id === tempId ? dbPin : pin) };
+                        }
+                        return proj;
+                    }));
+                }
+            } else {
+                setProjects(prev => prev.map(proj => {
+                    if (proj.id === targetProjectId) {
+                        return { ...proj, pins: proj.pins.map(pin => pin.id === tempId ? finalPin : pin) };
+                    }
+                    return proj;
+                }));
+            }
+        });
+
+    } catch (err: any) {
+        console.error(err);
+        alert(err.message || "오류가 발생했습니다.");
+        setIsSubmitting(false);
     }
+  };
+
+  const handleUpdateNote = async (pinId: string, note: string) => {
+      setProjects(prev => prev.map(proj => ({
+          ...proj,
+          pins: proj.pins.map(pin => pin.id === pinId ? { ...pin, note } : pin)
+      })));
+      if (session) await updatePinNoteInDb(pinId, note);
   };
 
   const handleUpgradePayment = async () => {
@@ -236,22 +232,42 @@ const App: React.FC = () => {
               <div className="bg-[#F2F0E9] w-full max-w-md rounded-[2rem] p-6 shadow-2xl flex flex-col max-h-[90vh]">
                   <div className="flex justify-between items-center mb-6">
                       <h3 className="text-xl font-bold">새로운 핀 추가</h3>
-                      <button onClick={() => setShowInput(false)} className="p-2 bg-white rounded-full"><X className="w-5 h-5" /></button>
+                      <button onClick={() => setShowInput(false)} className="p-2 bg-white rounded-full" disabled={isSubmitting}><X className="w-5 h-5" /></button>
                   </div>
                   <form onSubmit={handleAddPin} className="flex flex-col gap-4 overflow-hidden">
-                      <input type="url" autoFocus value={urlInput} onChange={(e) => setUrlInput(e.target.value)} placeholder="URL을 붙여넣으세요..." className="w-full p-4 rounded-2xl bg-white border-none text-lg focus:ring-2 focus:ring-black" />
+                      <input 
+                        type="url" 
+                        autoFocus 
+                        value={urlInput} 
+                        onChange={(e) => setUrlInput(e.target.value)} 
+                        placeholder="URL을 붙여넣으세요..." 
+                        disabled={isSubmitting}
+                        className="w-full p-4 rounded-2xl bg-white border-none text-lg focus:ring-2 focus:ring-black disabled:opacity-50" 
+                      />
                       <div className="overflow-y-auto no-scrollbar">
                         <label className="text-xs font-bold text-gray-400 px-2 mb-3 block uppercase">저장 위치</label>
                         <div className="flex flex-wrap gap-2 px-1">
                            {projects.map(proj => (
-                               <button key={proj.id} type="button" onClick={() => setSelectedTargetId(proj.id)} className={`flex items-center gap-2 px-4 py-3 rounded-xl border transition-all ${selectedTargetId === proj.id ? 'bg-white border-black ring-2 ring-black/5 shadow-md' : 'bg-white border-[#EAE6DF]'}`}>
+                               <button 
+                                key={proj.id} 
+                                type="button" 
+                                disabled={isSubmitting}
+                                onClick={() => setSelectedTargetId(proj.id)} 
+                                className={`flex items-center gap-2 px-4 py-3 rounded-xl border transition-all ${selectedTargetId === proj.id ? 'bg-white border-black ring-2 ring-black/5 shadow-md' : 'bg-white border-[#EAE6DF]'} disabled:opacity-50`}
+                               >
                                    <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: proj.color }}></span>
                                    <span className={`font-bold text-sm ${selectedTargetId === proj.id ? 'text-black' : 'text-gray-600'}`}>{proj.name}</span>
                                </button>
                            ))}
                         </div>
                       </div>
-                      <button type="submit" className="w-full py-4 bg-[#1A1918] text-white rounded-2xl font-bold text-lg shadow-xl active:scale-95 transition-transform mt-2">분석 및 저장</button>
+                      <button 
+                        type="submit" 
+                        disabled={isSubmitting}
+                        className="w-full py-4 bg-[#1A1918] text-white rounded-2xl font-bold text-lg shadow-xl active:scale-95 transition-transform mt-2 disabled:bg-gray-400 flex items-center justify-center gap-2"
+                      >
+                        {isSubmitting ? <><Loader2 className="w-5 h-5 animate-spin" /> 정보 가져오는 중...</> : '분석 및 저장'}
+                      </button>
                   </form>
               </div>
           </div>
@@ -282,36 +298,43 @@ const App: React.FC = () => {
                             <Sparkles className="w-10 h-10 text-[#FDD248]" fill="currentColor" />
                         </div>
                         <h3 className="text-2xl font-black text-[#1A1918] mb-4">수집된 영감이 없습니다</h3>
-                        <p className="text-gray-500 font-medium leading-relaxed max-w-[280px] mb-8">
-                            관심 있는 웹사이트나 링크를 붙여넣으세요.<br/>
-                            AI가 내용을 분석하고 카테고리별로<br/>
-                            정리해드립니다.
-                        </p>
-                        <button 
-                            onClick={() => { 
-                                if (activeProjectId) setSelectedTargetId(activeProjectId);
-                                else if (projects.length > 0) setSelectedTargetId(projects[0].id);
-                                setShowInput(true);
-                            }}
-                            className="flex items-center gap-2 px-8 py-3 bg-[#1A1918] text-white rounded-2xl font-bold shadow-xl active:scale-95 transition-transform"
-                        >
-                            <LinkIcon className="w-4 h-4" />
-                            <span>첫 번째 핀 추가하기</span>
-                        </button>
+                        <p className="text-gray-500 font-medium leading-relaxed max-w-[280px] mb-8">관심 있는 링크를 붙여넣으세요. AI가 정리해드립니다.</p>
+                        <button onClick={() => setShowInput(true)} className="flex items-center gap-2 px-8 py-3 bg-[#1A1918] text-white rounded-2xl font-bold shadow-xl active:scale-95 transition-transform"><LinkIcon className="w-4 h-4" /><span>첫 번째 핀 추가하기</span></button>
                     </div>
                 ) : (
                     <div className="grid grid-cols-1 gap-6 pb-20">
                         {displayedPins.map((item) => (
-                            <PinCard key={item.id} pin={item} color={item.color} />
+                            <PinCard key={item.id} pin={item} color={item.color} onUpdateNote={handleUpdateNote} />
                         ))}
                     </div>
                 )}
             </div>
         )}
-        {currentTab === 'category' && <CategoryList projects={projects} activeProjectId={activeProjectId} onSelectProject={(id) => { setActiveProjectId(id); setCurrentTab('pins'); }} onCreateProject={(name, color) => {
-             const newProject = { id: Date.now().toString(), name, color, pins: [], createdAt: Date.now() };
-             setProjects([...projects, newProject]);
-        }} />}
+        {currentTab === 'category' && (
+            <CategoryList 
+                projects={projects} 
+                activeProjectId={activeProjectId} 
+                onSelectProject={(id) => { setActiveProjectId(id); setCurrentTab('pins'); }} 
+                onCreateProject={async (name, color) => {
+                    if (session) {
+                        const newProj = await createProjectInDb(session.user.id, name, color);
+                        if (newProj) setProjects([...projects, newProj]);
+                    } else {
+                        const newProject = { id: Date.now().toString(), name, color, pins: [], createdAt: Date.now() };
+                        setProjects([...projects, newProject]);
+                    }
+                }}
+                onUpdateProject={async (id, name, color) => {
+                    setProjects(prev => prev.map(p => p.id === id ? { ...p, name, color } : p));
+                    if (session) await updateProjectInDb(id, name, color);
+                }}
+                onDeleteProject={async (id) => {
+                    setProjects(prev => prev.filter(p => p.id !== id));
+                    if (activeProjectId === id) setActiveProjectId(null);
+                    if (session) await deleteProjectInDb(id);
+                }}
+            />
+        )}
         {currentTab === 'settings' && <SettingsView userPlan={userPlan} onReset={() => { if(confirm('모든 데이터를 삭제할까요?')) { localStorage.clear(); window.location.reload(); } }} onUpgrade={handleUpgradePayment} onLoginClick={() => setShowAuthModal(true)} session={session} />}
       </main>
       <BottomNav currentTab={currentTab} onTabChange={setCurrentTab} />

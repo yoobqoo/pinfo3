@@ -1,10 +1,29 @@
 import { createClient } from '@supabase/supabase-js';
 import { Project, Pin } from '../types';
 
-const SUPABASE_URL = 'https://myatzzknbeyzuuzqiwbj.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15YXR6emtuYmV5enV1enFpd2JqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjU2MTkwNDQsImV4cCI6MjA4MTE5NTA0NH0.7GsaOeQG7IG79T5alB6y0kUwuAkWTxxhuAmCVIlY0j8';
+// Use environment variables provided by Vercel
+const SUPABASE_URL = (typeof process !== 'undefined' && process.env?.SUPABASE_URL) || 'https://myatzzknbeyzuuzqiwbj.supabase.co';
+const SUPABASE_ANON_KEY = (typeof process !== 'undefined' && process.env?.SUPABASE_ANON_KEY) || '';
 
-export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Create a safe mock auth object to prevent "Cannot read property 'getSession' of undefined"
+const mockSupabase = {
+    auth: {
+        getSession: async () => ({ data: { session: null }, error: null }),
+        onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } }),
+        signOut: async () => ({ error: null }),
+        signInWithOtp: async () => ({ error: new Error("Supabase is not configured.") })
+    },
+    from: () => ({
+        select: () => ({ eq: () => ({ order: () => Promise.resolve({ data: [], error: null }), single: () => Promise.resolve({ data: null, error: null }) }) }),
+        insert: () => ({ select: () => ({ single: () => Promise.resolve({ data: null, error: null }) }) }),
+        update: () => ({ eq: () => Promise.resolve({ error: null }) }),
+        delete: () => ({ eq: () => Promise.resolve({ error: null }) })
+    })
+} as any;
+
+export const supabase = SUPABASE_ANON_KEY 
+    ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    : mockSupabase;
 
 export const getCurrentUser = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -13,10 +32,8 @@ export const getCurrentUser = async () => {
 
 // --- DB Helper Functions ---
 
-// 1. Fetch all data for user
 export const fetchUserProjects = async (userId: string): Promise<Project[]> => {
     try {
-        // Fetch Projects
         const { data: projectsData, error: projError } = await supabase
             .from('projects')
             .select('*')
@@ -25,7 +42,6 @@ export const fetchUserProjects = async (userId: string): Promise<Project[]> => {
 
         if (projError) throw projError;
 
-        // Fetch Pins
         const { data: pinsData, error: pinsError } = await supabase
             .from('pins')
             .select('*')
@@ -36,15 +52,14 @@ export const fetchUserProjects = async (userId: string): Promise<Project[]> => {
 
         if (!projectsData) return [];
 
-        // Join Projects and Pins
-        return projectsData.map(p => ({
+        return projectsData.map((p: any) => ({
             id: p.id,
             name: p.name,
             color: p.color,
             createdAt: new Date(p.created_at).getTime(),
             pins: (pinsData || [])
-                .filter(pin => pin.project_id === p.id)
-                .map(pin => ({
+                .filter((pin: any) => pin.project_id === p.id)
+                .map((pin: any) => ({
                     id: pin.id,
                     originalUrl: pin.original_url,
                     title: pin.title,
@@ -53,7 +68,8 @@ export const fetchUserProjects = async (userId: string): Promise<Project[]> => {
                     tags: pin.tags || [],
                     createdAt: new Date(pin.created_at).getTime(),
                     thumbnailUrl: pin.thumbnail_url,
-                    isAnalyzing: false
+                    isAnalyzing: false,
+                    note: pin.note
                 }))
         }));
     } catch (e) {
@@ -62,23 +78,14 @@ export const fetchUserProjects = async (userId: string): Promise<Project[]> => {
     }
 };
 
-// 2. Create Project
 export const createProjectInDb = async (userId: string, name: string, color: string): Promise<Project | null> => {
     const { data, error } = await supabase
         .from('projects')
-        .insert({
-            user_id: userId,
-            name,
-            color
-        })
+        .insert({ user_id: userId, name, color })
         .select()
         .single();
 
-    if (error) {
-        console.error("Error creating project:", error);
-        return null;
-    }
-
+    if (error || !data) return null;
     return {
         id: data.id,
         name: data.name,
@@ -88,7 +95,17 @@ export const createProjectInDb = async (userId: string, name: string, color: str
     };
 };
 
-// 3. Create Pin
+export const updateProjectInDb = async (projectId: string, name: string, color: string) => {
+    const { error } = await supabase.from('projects').update({ name, color }).eq('id', projectId);
+    return !error;
+};
+
+export const deleteProjectInDb = async (projectId: string) => {
+    await supabase.from('pins').delete().eq('project_id', projectId);
+    const { error } = await supabase.from('projects').delete().eq('id', projectId);
+    return !error;
+};
+
 export const createPinInDb = async (userId: string, projectId: string, pin: Pin): Promise<Pin | null> => {
     const { data, error } = await supabase
         .from('pins')
@@ -100,16 +117,13 @@ export const createPinInDb = async (userId: string, projectId: string, pin: Pin)
             summary: pin.summary,
             platform: pin.platform,
             tags: pin.tags,
-            thumbnail_url: pin.thumbnailUrl
+            thumbnail_url: pin.thumbnailUrl,
+            note: pin.note
         })
         .select()
         .single();
 
-    if (error) {
-         console.error("Error creating pin:", error);
-         return null;
-    }
-
+    if (error || !data) return null;
     return {
         id: data.id,
         originalUrl: data.original_url,
@@ -119,6 +133,12 @@ export const createPinInDb = async (userId: string, projectId: string, pin: Pin)
         tags: data.tags,
         createdAt: new Date(data.created_at).getTime(),
         thumbnailUrl: data.thumbnail_url,
-        isAnalyzing: false
+        isAnalyzing: false,
+        note: data.note
     };
+};
+
+export const updatePinNoteInDb = async (pinId: string, note: string) => {
+    const { error } = await supabase.from('pins').update({ note }).eq('id', pinId);
+    return !error;
 };

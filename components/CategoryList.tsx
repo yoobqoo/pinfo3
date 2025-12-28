@@ -1,7 +1,6 @@
-
 import React, { useState } from 'react';
 import { Project } from '../types';
-import { Plus, ArrowRight, Sparkles, Check } from 'lucide-react';
+import { Plus, ArrowRight, Sparkles, Check, Edit2, Trash2, X, MoreHorizontal } from 'lucide-react';
 import { Logo } from './Logo';
 
 interface CategoryListProps {
@@ -9,70 +8,82 @@ interface CategoryListProps {
   activeProjectId: string | null;
   onSelectProject: (id: string | null) => void;
   onCreateProject: (name: string, color: string) => void;
+  onUpdateProject: (id: string, name: string, color: string) => void;
+  onDeleteProject: (id: string) => void;
 }
 
-// Updated colors based on the user's provided image
 const PROJECT_COLORS = [
-  '#7FC7B6', // Teal
-  '#EE7548', // Orange
-  '#FDD248', // Yellow
-  '#93B2DE', // Light Blue
-  '#526CFE', // Blue
-  '#B5A86E', // Gold/Olive
-  '#E81E25', // Red
-  '#AFAFAF', // Grey
-  '#6D8C62', // Green
-  '#B08C61', // Brown
-  '#F7EDC8', // Beige
-  '#D8A6F1', // Lavender
+  '#7FC7B6', '#EE7548', '#FDD248', '#93B2DE', '#526CFE', '#B5A86E',
+  '#E81E25', '#AFAFAF', '#6D8C62', '#B08C61', '#F7EDC8', '#D8A6F1',
 ];
 
 export const CategoryList: React.FC<CategoryListProps> = ({
   projects,
   activeProjectId,
   onSelectProject,
-  onCreateProject
+  onCreateProject,
+  onUpdateProject,
+  onDeleteProject
 }) => {
   const [isCreating, setIsCreating] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
   const [newProjectName, setNewProjectName] = useState('');
   const [selectedColor, setSelectedColor] = useState(PROJECT_COLORS[0]); 
 
   const handleCreateSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (newProjectName.trim()) {
-      if (projects.some(p => p.name.trim() === newProjectName.trim())) {
+      if (projects.some(p => p.name.trim() === newProjectName.trim() && p.id !== editingId)) {
           alert("이미 존재하는 카테고리 이름입니다.");
           return;
       }
-      onCreateProject(newProjectName, selectedColor);
+      
+      if (editingId) {
+          onUpdateProject(editingId, newProjectName, selectedColor);
+      } else {
+          onCreateProject(newProjectName, selectedColor);
+      }
+      
       setNewProjectName('');
-      setSelectedColor(PROJECT_COLORS[0]);
+      setEditingId(null);
       setIsCreating(false);
     }
   };
 
+  const startEdit = (project: Project, e: React.MouseEvent) => {
+      e.stopPropagation();
+      setEditingId(project.id);
+      setNewProjectName(project.name);
+      setSelectedColor(project.color);
+      setIsCreating(true);
+  };
+
+  const handleDelete = (id: string, name: string, e: React.MouseEvent) => {
+      e.stopPropagation();
+      if (confirm(`'${name}' 카테고리와 그 안의 모든 핀을 삭제할까요?`)) {
+          onDeleteProject(id);
+      }
+  };
+
   return (
     <div className="px-6 pb-24 pt-4">
-        {/* Logo Section */}
         <div className="mb-2">
            <Logo className="h-6 w-auto" />
         </div>
 
-        {/* Header - Aligned with Pins View (items-start and w-12 h-12 button) */}
         <div className="flex items-start justify-between mb-6">
             <div className="flex flex-col items-start">
                 <h2 className="text-3xl font-black tracking-tight text-[#1A1918] leading-tight">Category</h2>
                 <p className="text-gray-500 font-medium text-sm mt-1 ml-1">{projects.length}개의 수집된 카테고리</p>
             </div>
             <button 
-              onClick={() => setIsCreating(true)}
+              onClick={() => { setIsCreating(true); setEditingId(null); setNewProjectName(''); }}
               className="w-12 h-12 rounded-full bg-[#1A1918] text-white flex items-center justify-center shadow-lg active:scale-90 transition-transform mt-0.5"
             >
                 <Plus className="w-6 h-6" />
             </button>
         </div>
 
-        {/* Create Form */}
         {isCreating && (
           <div className="mb-6 bg-white p-5 rounded-[2rem] shadow-sm border border-[#EAE6DF] animate-in slide-in-from-top-4">
              <form onSubmit={handleCreateSubmit}>
@@ -104,7 +115,7 @@ export const CategoryList: React.FC<CategoryListProps> = ({
                  <div className="flex gap-2">
                      <button 
                         type="button"
-                        onClick={() => setIsCreating(false)}
+                        onClick={() => { setIsCreating(false); setEditingId(null); }}
                         className="flex-1 py-3 rounded-xl font-bold text-gray-400 hover:bg-gray-50"
                      >
                          취소
@@ -113,39 +124,54 @@ export const CategoryList: React.FC<CategoryListProps> = ({
                         type="submit"
                         className="flex-1 py-3 rounded-xl bg-[#1A1918] text-white font-bold shadow-md"
                      >
-                         만들기
+                         {editingId ? '저장' : '만들기'}
                      </button>
                  </div>
              </form>
           </div>
         )}
 
-        {/* Project List */}
         <div className="space-y-4">
             {projects.map(project => (
-                <button
-                    key={project.id}
-                    onClick={() => onSelectProject(project.id)}
-                    className={`w-full p-5 rounded-[2rem] flex items-center justify-between transition-all active:scale-95 ${
-                        activeProjectId === project.id 
-                        ? 'bg-[#1A1918] text-white shadow-xl' 
-                        : 'bg-white text-black border border-[#EAE6DF]'
-                    }`}
-                >
-                    <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-[#F2F0E9] relative overflow-hidden">
-                             <div className="w-full h-full opacity-50" style={{ backgroundColor: project.color }}></div>
-                             <div className="w-4 h-4 rounded-full absolute" style={{ backgroundColor: project.color }}></div>
-                        </div>
-                        <div className="text-left">
-                            <div className="font-bold text-lg">{project.name}</div>
-                            <div className={`text-sm ${activeProjectId === project.id ? 'text-gray-400' : 'text-gray-400'}`}>
-                                {project.pins.length} pins
+                <div key={project.id} className="relative group">
+                    <button
+                        onClick={() => onSelectProject(project.id)}
+                        className={`w-full p-5 rounded-[2rem] flex items-center justify-between transition-all active:scale-[0.98] ${
+                            activeProjectId === project.id 
+                            ? 'bg-[#1A1918] text-white shadow-xl' 
+                            : 'bg-white text-black border border-[#EAE6DF]'
+                        }`}
+                    >
+                        <div className="flex items-center gap-4">
+                            <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-[#F2F0E9] relative overflow-hidden">
+                                <div className="w-full h-full opacity-50" style={{ backgroundColor: project.color }}></div>
+                                <div className="w-4 h-4 rounded-full absolute" style={{ backgroundColor: project.color }}></div>
+                            </div>
+                            <div className="text-left">
+                                <div className="font-bold text-lg">{project.name}</div>
+                                <div className="text-sm text-gray-400">
+                                    {project.pins.length} pins
+                                </div>
                             </div>
                         </div>
-                    </div>
-                    {activeProjectId === project.id && <ArrowRight className="w-6 h-6" />}
-                </button>
+                        
+                        <div className="flex items-center gap-2">
+                            <button 
+                                onClick={(e) => startEdit(project, e)}
+                                className={`p-2 rounded-full transition-colors ${activeProjectId === project.id ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
+                            >
+                                <Edit2 className="w-4 h-4 opacity-40 hover:opacity-100" />
+                            </button>
+                            <button 
+                                onClick={(e) => handleDelete(project.id, project.name, e)}
+                                className={`p-2 rounded-full transition-colors ${activeProjectId === project.id ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
+                            >
+                                <Trash2 className="w-4 h-4 opacity-40 hover:opacity-100 text-[#FF453A]" />
+                            </button>
+                            {activeProjectId === project.id && <ArrowRight className="w-6 h-6 ml-1" />}
+                        </div>
+                    </button>
+                </div>
             ))}
         </div>
     </div>

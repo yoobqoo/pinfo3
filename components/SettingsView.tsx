@@ -1,6 +1,6 @@
 import React from 'react';
 import { PlanType } from '../types';
-import { Crown, Zap, ChevronRight, LogIn, LogOut } from 'lucide-react';
+import { Crown, Zap, ChevronRight, LogIn, LogOut, ShieldCheck, Key } from 'lucide-react';
 import { Logo } from './Logo';
 import { supabase } from '../services/supabase';
 
@@ -89,18 +89,45 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ userPlan, onReset, o
                     </button>
                 ) : (
                     <div className="flex items-center gap-4 text-sm font-medium opacity-80">
-                         <span>다음 결제일: 2024. 12. 31</span>
+                         <span>무제한 분석 및 저장이 활성화되었습니다.</span>
                     </div>
                 )}
+            </div>
+
+            {/* API Key Guide (Production) */}
+            <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-[#EAE6DF] mb-6">
+                 <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-blue-50 rounded-lg">
+                        <Key className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <h3 className="font-bold text-lg">프로덕션 설정</h3>
+                 </div>
+                 <p className="text-sm text-gray-500 leading-relaxed mb-4">
+                    실제 서비스 배포 시 Vercel 설정 페이지에서 아래 환경 변수를 추가하세요. 유료 티어를 사용하려면 Google AI Studio에서 결제 수단을 등록해야 합니다.
+                 </p>
+                 <div className="bg-gray-50 p-4 rounded-xl font-mono text-xs text-gray-700 select-all border border-gray-100">
+                    API_KEY = "발급받은_키_입력"
+                 </div>
+                 <a 
+                    href="https://ai.google.dev/gemini-api/docs/billing" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="mt-4 inline-flex items-center text-xs font-bold text-blue-600 hover:underline gap-1"
+                 >
+                    유료 결제 가이드 확인 <ChevronRight className="w-3 h-3" />
+                 </a>
             </div>
 
             <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-[#EAE6DF] space-y-6">
                 <div className="flex items-center justify-between">
                     <div>
                         <h3 className="font-bold text-lg">AI 모델</h3>
-                        <p className="text-sm text-gray-400">Gemini 2.5 Flash</p>
+                        <p className="text-sm text-gray-400">Gemini 3 Pro Preview</p>
                     </div>
-                    <ChevronRight className="w-5 h-5 text-gray-300" />
+                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-green-50 text-green-700 rounded-lg text-[10px] font-black">
+                        <ShieldCheck className="w-3 h-3" />
+                        <span>PREMIUM</span>
+                    </div>
                 </div>
                 
                 <div className="h-px bg-gray-100" />
@@ -108,7 +135,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ userPlan, onReset, o
                 <div className="flex items-center justify-between">
                     <div>
                         <h3 className="font-bold text-lg">앱 정보</h3>
-                        <p className="text-sm text-gray-400">v1.1.0 (Supabase Enabled)</p>
+                        <p className="text-sm text-gray-400">v1.1.0 (Production Ready)</p>
                     </div>
                 </div>
 
@@ -123,11 +150,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ userPlan, onReset, o
                     </button>
                  </div>
             </div>
-            
-            {/* Dev Helper */}
-            <button onClick={onUpgrade} className="w-full mt-8 text-center text-xs text-gray-300">
-                (개발자용: 요금제 토글하기)
-            </button>
         </div>
     );
 };

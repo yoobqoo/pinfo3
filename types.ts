@@ -1,4 +1,3 @@
-
 export type Platform = 'youtube' | 'instagram' | 'twitter' | 'linkedin' | 'github' | 'blog' | 'news' | 'shopping' | 'other';
 
 export type PlanType = 'free' | 'pro';
@@ -24,15 +23,16 @@ export interface Pin {
   platform: Platform;
   tags: string[];
   createdAt: number;
-  thumbnailUrl?: string; // Optional place for an image if we had one
-  isAnalyzing?: boolean; // New flag for loading state
+  thumbnailUrl?: string;
+  isAnalyzing?: boolean;
+  note?: string; // New: Simple note or to-do text
 }
 
 export interface Project {
   id: string;
   name: string;
   description?: string;
-  color: string; // Changed from emoji to color hex code
+  color: string;
   pins: Pin[];
   createdAt: number;
 }
