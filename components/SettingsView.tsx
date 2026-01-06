@@ -1,6 +1,8 @@
+
 import React from 'react';
 import { PlanType } from '../types';
-import { Crown, Zap, ChevronRight, LogIn, LogOut, ShieldCheck, Key } from 'lucide-react';
+/* Added Sparkles to imports */
+import { Crown, Zap, ChevronRight, LogIn, LogOut, ShieldCheck, Info, Sparkles } from 'lucide-react';
 import { Logo } from './Logo';
 import { supabase } from '../services/supabase';
 
@@ -8,8 +10,8 @@ interface SettingsViewProps {
     userPlan: PlanType;
     onReset: () => void;
     onUpgrade: () => void;
-    onLoginClick: () => void; // Parent handles modal
-    session: any; // Supabase session
+    onLoginClick: () => void;
+    session: any;
 }
 
 export const SettingsView: React.FC<SettingsViewProps> = ({ userPlan, onReset, onUpgrade, onLoginClick, session }) => {
@@ -24,7 +26,6 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ userPlan, onReset, o
 
     return (
         <div className="px-6 pb-24 pt-4">
-            {/* Logo Section */}
             <div className="mb-2">
                <Logo className="h-6 w-auto" />
             </div>
@@ -35,7 +36,7 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ userPlan, onReset, o
             {!session ? (
                 <div 
                     onClick={onLoginClick}
-                    className="bg-[#1A1918] rounded-[2rem] p-6 text-white mb-6 cursor-pointer active:scale-98 transition-transform relative overflow-hidden group"
+                    className="bg-[#1A1918] rounded-[2rem] p-6 text-white mb-6 cursor-pointer active:scale-95 transition-all relative overflow-hidden group"
                 >
                      <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-[40px] -mr-10 -mt-10 group-hover:bg-white/20 transition-colors"></div>
                      <div className="relative z-10 flex items-center justify-between">
@@ -50,11 +51,11 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ userPlan, onReset, o
                 </div>
             ) : (
                 <div className="bg-white border border-[#EAE6DF] rounded-[2rem] p-6 mb-6 flex items-center justify-between">
-                     <div>
-                        <h3 className="font-bold text-lg">{session.user.email}</h3>
-                        <p className="text-gray-400 text-xs font-medium">로그인됨</p>
+                     <div className="overflow-hidden">
+                        <h3 className="font-bold text-lg truncate max-w-[200px]">{session.user.email}</h3>
+                        <p className="text-gray-400 text-xs font-medium uppercase tracking-widest">Signed In</p>
                     </div>
-                    <button onClick={handleLogout} className="p-2 bg-gray-100 rounded-full hover:bg-gray-200">
+                    <button onClick={handleLogout} className="p-3 bg-gray-50 rounded-full hover:bg-gray-100 transition-colors active:scale-90">
                         <LogOut className="w-4 h-4 text-gray-600" />
                     </button>
                 </div>
@@ -68,13 +69,13 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ userPlan, onReset, o
                 
                 <div className="flex items-start justify-between mb-8 relative z-10">
                     <div>
-                        <div className="text-sm font-bold opacity-60 mb-1">CURRENT PLAN</div>
+                        <div className="text-[10px] font-black opacity-40 mb-1 uppercase tracking-widest">Current Plan</div>
                         <h3 className="text-2xl font-black flex items-center gap-2">
                             {isPro ? 'Pro Member' : 'Free Starter'}
                             {isPro && <Crown className="w-5 h-5 text-[#FFD60A]" fill="currentColor" />}
                         </h3>
                     </div>
-                    <div className={`px-3 py-1 rounded-full text-xs font-bold ${isPro ? 'bg-[#FFD60A] text-black' : 'bg-gray-100 text-gray-500'}`}>
+                    <div className={`px-3 py-1 rounded-full text-[10px] font-black tracking-tighter ${isPro ? 'bg-[#FFD60A] text-black' : 'bg-gray-100 text-gray-400'}`}>
                         {isPro ? 'ACTIVE' : 'LIMITED'}
                     </div>
                 </div>
@@ -82,69 +83,56 @@ export const SettingsView: React.FC<SettingsViewProps> = ({ userPlan, onReset, o
                 {!isPro ? (
                     <button 
                         onClick={onUpgrade}
-                        className="w-full py-4 rounded-xl bg-[#1A1918] text-white font-bold flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-transform"
+                        className="w-full py-4 rounded-2xl bg-[#1A1918] text-white font-bold flex items-center justify-center gap-2 shadow-lg active:scale-95 transition-all"
                     >
                         <span>Upgrade to Pro</span>
                         <Zap className="w-4 h-4 fill-current" />
                     </button>
                 ) : (
-                    <div className="flex items-center gap-4 text-sm font-medium opacity-80">
+                    <div className="flex items-center gap-2 text-xs font-bold opacity-60">
+                         <ShieldCheck className="w-4 h-4" />
                          <span>무제한 분석 및 저장이 활성화되었습니다.</span>
                     </div>
                 )}
             </div>
 
-            {/* API Key Guide (Production) */}
-            <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-[#EAE6DF] mb-6">
-                 <div className="flex items-center gap-3 mb-4">
-                    <div className="p-2 bg-blue-50 rounded-lg">
-                        <Key className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <h3 className="font-bold text-lg">프로덕션 설정</h3>
-                 </div>
-                 <p className="text-sm text-gray-500 leading-relaxed mb-4">
-                    실제 서비스 배포 시 Vercel 설정 페이지에서 아래 환경 변수를 추가하세요. 유료 티어를 사용하려면 Google AI Studio에서 결제 수단을 등록해야 합니다.
-                 </p>
-                 <div className="bg-gray-50 p-4 rounded-xl font-mono text-xs text-gray-700 select-all border border-gray-100">
-                    API_KEY = "발급받은_키_입력"
-                 </div>
-                 <a 
-                    href="https://ai.google.dev/gemini-api/docs/billing" 
-                    target="_blank" 
-                    rel="noopener noreferrer"
-                    className="mt-4 inline-flex items-center text-xs font-bold text-blue-600 hover:underline gap-1"
-                 >
-                    유료 결제 가이드 확인 <ChevronRight className="w-3 h-3" />
-                 </a>
-            </div>
-
+            {/* Information List */}
             <div className="bg-white rounded-[2rem] p-6 shadow-sm border border-[#EAE6DF] space-y-6">
                 <div className="flex items-center justify-between">
-                    <div>
-                        <h3 className="font-bold text-lg">AI 모델</h3>
-                        <p className="text-sm text-gray-400">Gemini 3 Pro Preview</p>
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-purple-50 rounded-xl flex items-center justify-center">
+                            <Sparkles className="w-5 h-5 text-purple-500" />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-base">AI 모델</h3>
+                            <p className="text-xs text-gray-400 font-medium">Gemini 3 Pro Preview</p>
+                        </div>
                     </div>
-                    <div className="flex items-center gap-1.5 px-2.5 py-1 bg-green-50 text-green-700 rounded-lg text-[10px] font-black">
-                        <ShieldCheck className="w-3 h-3" />
-                        <span>PREMIUM</span>
+                    <div className="px-2 py-1 bg-green-50 text-green-700 rounded-lg text-[9px] font-black tracking-widest uppercase">
+                        Active
                     </div>
                 </div>
                 
-                <div className="h-px bg-gray-100" />
+                <div className="h-px bg-gray-50" />
                 
                 <div className="flex items-center justify-between">
-                    <div>
-                        <h3 className="font-bold text-lg">앱 정보</h3>
-                        <p className="text-sm text-gray-400">v1.1.0 (Production Ready)</p>
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-blue-50 rounded-xl flex items-center justify-center">
+                            <Info className="w-5 h-5 text-blue-500" />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-base">앱 정보</h3>
+                            <p className="text-xs text-gray-400 font-medium">v1.2.0 (Latest)</p>
+                        </div>
                     </div>
                 </div>
 
-                 <div className="h-px bg-gray-100" />
+                 <div className="h-px bg-gray-50" />
 
                  <div className="pt-2">
                     <button 
                         onClick={onReset}
-                        className="w-full py-4 rounded-xl bg-[#F2F0E9] font-bold text-[#FF453A] hover:bg-[#FFE5E5] transition-colors"
+                        className="w-full py-4 rounded-2xl bg-red-50 font-bold text-red-500 hover:bg-red-100 transition-colors active:scale-95"
                     >
                         로컬 데이터 초기화
                     </button>

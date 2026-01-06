@@ -118,7 +118,6 @@ const App: React.FC = () => {
 
     try {
         const tempId = Date.now().toString();
-        // 1. FAST METADATA FETCH
         const meta = await scrapeMetadata(inputUrl);
 
         if (!meta) throw new Error("URL 정보를 가져오지 못했습니다.");
@@ -139,7 +138,6 @@ const App: React.FC = () => {
             isAnalyzing: true 
         };
 
-        // 2. IMMEDIATE UI UPDATE
         setProjects(prev => prev.map(proj => {
             if (proj.id === targetProjectId) return { ...proj, pins: [initialPin, ...proj.pins] };
             return proj;
@@ -149,7 +147,6 @@ const App: React.FC = () => {
         setActiveProjectId(targetProjectId);
         setIsSubmitting(false);
 
-        // 3. BACKGROUND AI ANALYSIS
         generateAIInsight(inputUrl, (meta as any).title, (meta as any).description, (meta as any).platform).then(async (aiInsight) => {
             const finalPin: Pin = { ...initialPin, summary: aiInsight.summary, tags: aiInsight.tags, isAnalyzing: false };
             
@@ -218,22 +215,22 @@ const App: React.FC = () => {
       
       {showProjectSelector && (
           <div className="fixed inset-0 z-[70] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
-             <div className="bg-[#F2F0E9] w-full max-w-sm rounded-[2rem] p-6 shadow-2xl flex flex-col max-h-[80vh]">
+             <div className="bg-[#F2F0E9] w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl flex flex-col max-h-[80vh]">
                 <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-xl font-bold">카테고리 선택</h3>
+                    <h3 className="text-xl font-black">카테고리 선택</h3>
                     <button onClick={() => setShowProjectSelector(false)} className="p-2 bg-white rounded-full"><X className="w-5 h-5" /></button>
                 </div>
-                <div className="flex flex-col gap-2 overflow-y-auto no-scrollbar">
-                    <button onClick={() => { setActiveProjectId(null); setShowProjectSelector(false); }} className={`flex items-center gap-4 px-4 py-4 rounded-xl transition-all ${activeProjectId === null ? 'bg-[#1A1918] text-white' : 'bg-white text-gray-800'}`}>
-                         <div className={`w-10 h-10 rounded-full flex items-center justify-center ${activeProjectId === null ? 'bg-white/20' : 'bg-gray-100'}`}><LayoutGrid className="w-5 h-5" /></div>
-                         <div className="flex-1 font-bold">All Pins</div>
-                         {activeProjectId === null && <Check className="w-5 h-5" />}
+                <div className="flex flex-col gap-3 overflow-y-auto no-scrollbar">
+                    <button onClick={() => { setActiveProjectId(null); setShowProjectSelector(false); }} className={`flex items-center gap-4 px-5 py-4 rounded-[1.8rem] transition-all ${activeProjectId === null ? 'bg-[#1A1918] text-white' : 'bg-white text-gray-800'}`}>
+                         <div className={`w-10 h-10 rounded-full flex items-center justify-center ${activeProjectId === null ? 'bg-white/10' : 'bg-gray-100'}`}><LayoutGrid className="w-5 h-5" /></div>
+                         <div className="flex-1 font-bold text-base">전체 핀 보기</div>
+                         {activeProjectId === null && <Check className="w-5 h-5" strokeWidth={3} />}
                     </button>
                     {projects.map(proj => (
-                         <button key={proj.id} onClick={() => { setActiveProjectId(proj.id); setShowProjectSelector(false); }} className={`flex items-center gap-4 px-4 py-4 rounded-xl transition-all ${activeProjectId === proj.id ? 'bg-[#1A1918] text-white' : 'bg-white text-gray-800'}`}>
+                         <button key={proj.id} onClick={() => { setActiveProjectId(proj.id); setShowProjectSelector(false); }} className={`flex items-center gap-4 px-5 py-4 rounded-[1.8rem] transition-all ${activeProjectId === proj.id ? 'bg-[#1A1918] text-white' : 'bg-white text-gray-800'}`}>
                             <span className="w-10 h-10 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: proj.color + '20' }}><span className="w-3 h-3 rounded-full" style={{ backgroundColor: proj.color }}></span></span>
-                            <div className="flex-1 font-bold">{proj.name}</div>
-                            {activeProjectId === proj.id && <Check className="w-5 h-5" />}
+                            <div className="flex-1 font-bold text-base">{proj.name}</div>
+                            {activeProjectId === proj.id && <Check className="w-5 h-5" strokeWidth={3} />}
                          </button>
                     ))}
                 </div>
@@ -243,23 +240,23 @@ const App: React.FC = () => {
 
       {showInput && (
           <div className="fixed inset-0 z-[60] bg-black/60 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
-              <div className="bg-[#F2F0E9] w-full max-w-md rounded-[2rem] p-6 shadow-2xl flex flex-col max-h-[90vh]">
+              <div className="bg-[#F2F0E9] w-full max-w-md rounded-[2.5rem] p-8 shadow-2xl flex flex-col max-h-[90vh]">
                   <div className="flex justify-between items-center mb-6">
-                      <h3 className="text-xl font-bold">새로운 핀 추가</h3>
+                      <h3 className="text-2xl font-black">새로운 영감</h3>
                       <button onClick={() => setShowInput(false)} className="p-2 bg-white rounded-full" disabled={isSubmitting}><X className="w-5 h-5" /></button>
                   </div>
-                  <form onSubmit={handleAddPin} className="flex flex-col gap-4 overflow-hidden">
+                  <form onSubmit={handleAddPin} className="flex flex-col gap-6 overflow-hidden">
                       <input 
                         type="url" 
                         autoFocus 
                         value={urlInput} 
                         onChange={(e) => setUrlInput(e.target.value)} 
-                        placeholder="URL을 붙여넣으세요..." 
+                        placeholder="링크를 여기에 붙여넣으세요..." 
                         disabled={isSubmitting}
-                        className="w-full p-4 rounded-2xl bg-white border-none text-lg focus:ring-2 focus:ring-black disabled:opacity-50" 
+                        className="w-full p-5 rounded-3xl bg-white border-none text-lg font-bold shadow-inner focus:ring-4 focus:ring-black/5 disabled:opacity-50" 
                       />
                       <div className="overflow-y-auto no-scrollbar">
-                        <label className="text-xs font-bold text-gray-400 px-2 mb-3 block uppercase">저장 위치</label>
+                        <label className="text-[10px] font-black text-gray-400 px-2 mb-3 block uppercase tracking-widest">분류 카테고리</label>
                         <div className="flex flex-wrap gap-2 px-1">
                            {projects.map(proj => (
                                <button 
@@ -267,10 +264,10 @@ const App: React.FC = () => {
                                 type="button" 
                                 disabled={isSubmitting}
                                 onClick={() => setSelectedTargetId(proj.id)} 
-                                className={`flex items-center gap-2 px-4 py-3 rounded-xl border transition-all ${selectedTargetId === proj.id ? 'bg-white border-black ring-2 ring-black/5 shadow-md' : 'bg-white border-[#EAE6DF]'} disabled:opacity-50`}
+                                className={`flex items-center gap-2 px-5 py-3.5 rounded-2xl border transition-all ${selectedTargetId === proj.id ? 'bg-[#1A1918] text-white border-black shadow-lg scale-105' : 'bg-white border-[#EAE6DF] text-gray-600'} disabled:opacity-50`}
                                >
-                                   <span className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: proj.color }}></span>
-                                   <span className={`font-bold text-sm ${selectedTargetId === proj.id ? 'text-black' : 'text-gray-600'}`}>{proj.name}</span>
+                                   <span className="w-3 h-3 rounded-full" style={{ backgroundColor: proj.color }}></span>
+                                   <span className={`font-black text-sm`}>{proj.name}</span>
                                </button>
                            ))}
                         </div>
@@ -278,45 +275,47 @@ const App: React.FC = () => {
                       <button 
                         type="submit" 
                         disabled={isSubmitting}
-                        className="w-full py-4 bg-[#1A1918] text-white rounded-2xl font-bold text-lg shadow-xl active:scale-95 transition-transform mt-2 disabled:bg-gray-400 flex items-center justify-center gap-2"
+                        className="w-full py-5 bg-[#1A1918] text-white rounded-[2rem] font-black text-xl shadow-2xl active:scale-95 transition-transform mt-2 disabled:bg-gray-400 flex items-center justify-center gap-3"
                       >
-                        {isSubmitting ? <><Loader2 className="w-5 h-5 animate-spin" /> 정보 가져오는 중...</> : '분석 및 저장'}
+                        {isSubmitting ? <><Loader2 className="w-6 h-6 animate-spin" /> 정보 수집 중...</> : '영감 저장하기'}
                       </button>
                   </form>
               </div>
           </div>
       )}
 
-      <main className="flex-1 overflow-y-auto no-scrollbar">
+      <main className="flex-1 overflow-y-auto no-scrollbar relative z-10">
         {currentTab === 'pins' && (
-            <div className="px-6 pb-32 pt-4 min-h-full flex flex-col">
+            <div className="px-6 pb-40 pt-4 min-h-full flex flex-col">
                 <div className="mb-2"><Logo className="h-6 w-auto" /></div>
-                <div className="flex items-start justify-between mb-6">
-                    <button onClick={() => setShowProjectSelector(true)} className="flex flex-col items-start">
+                <div className="flex items-start justify-between mb-8">
+                    <button onClick={() => setShowProjectSelector(true)} className="flex flex-col items-start group">
                         <div className="flex items-center gap-2 text-3xl font-black tracking-tight text-[#1A1918] leading-tight">
-                            {activeProject ? (<><span className="w-4 h-4 rounded-full mt-1" style={{ backgroundColor: activeProject.color }}></span><span>{activeProject.name}</span></>) : (<span>All Pins</span>)}
-                            <ChevronDown className="w-6 h-6 text-gray-400 mt-1" strokeWidth={3} />
+                            {activeProject ? (<><span className="w-4 h-4 rounded-full mt-1 shrink-0" style={{ backgroundColor: activeProject.color }}></span><span className="truncate max-w-[200px]">{activeProject.name}</span></>) : (<span>All Pins</span>)}
+                            <ChevronDown className="w-6 h-6 text-gray-300 mt-1 transition-transform group-active:translate-y-1" strokeWidth={4} />
                         </div>
-                        <p className="text-gray-500 font-medium text-sm mt-1 ml-1">{displayedPins.length}개의 수집된 영감</p>
+                        <p className="text-gray-400 font-bold text-[10px] uppercase tracking-widest mt-2 ml-1">{displayedPins.length} SAVED INSPIRATIONS</p>
                     </button>
                     <button onClick={() => { 
                       if (activeProjectId) setSelectedTargetId(activeProjectId);
                       else if (projects.length > 0) setSelectedTargetId(projects[0].id);
                       setShowInput(true);
-                    }} className="w-12 h-12 bg-[#1A1918] text-white rounded-full flex items-center justify-center shadow-lg active:scale-90 transition-transform mt-0.5"><Plus className="w-6 h-6" /></button>
+                    }} className="w-12 h-12 bg-[#1A1918] text-white rounded-full flex items-center justify-center shadow-2xl active:scale-90 transition-transform mt-1"><Plus className="w-6 h-6" strokeWidth={3} /></button>
                 </div>
 
                 {displayedPins.length === 0 ? (
-                    <div className="flex-1 flex flex-col items-center justify-center text-center px-4 -mt-10">
-                        <div className="w-24 h-24 bg-white rounded-[2.5rem] flex items-center justify-center mb-8 shadow-sm">
+                    <div className="flex-1 flex flex-col items-center justify-center text-center px-6 -mt-10">
+                        <div className="w-24 h-24 bg-white rounded-[2.5rem] flex items-center justify-center mb-10 shadow-sm">
                             <Sparkles className="w-10 h-10 text-[#FDD248]" fill="currentColor" />
                         </div>
-                        <h3 className="text-2xl font-black text-[#1A1918] mb-4">수집된 영감이 없습니다</h3>
-                        <p className="text-gray-500 font-medium leading-relaxed max-w-[280px] mb-8">관심 있는 링크를 붙여넣으세요. AI가 정리해드립니다.</p>
-                        <button onClick={() => setShowInput(true)} className="flex items-center gap-2 px-8 py-3 bg-[#1A1918] text-white rounded-2xl font-bold shadow-xl active:scale-95 transition-transform"><LinkIcon className="w-4 h-4" /><span>첫 번째 핀 추가하기</span></button>
+                        <h3 className="text-2xl font-black text-[#1A1918] mb-4">아직 수집된 핀이 없어요</h3>
+                        <p className="text-gray-400 font-bold text-sm leading-relaxed max-w-[280px] mb-10">
+                            영감을 주는 링크를 복사해서 붙여넣으세요. AI가 깔끔하게 정리해 드립니다.
+                        </p>
+                        <button onClick={() => setShowInput(true)} className="flex items-center gap-3 px-8 py-4 bg-[#1A1918] text-white rounded-[1.5rem] font-bold shadow-2xl active:scale-95 transition-transform"><LinkIcon className="w-4 h-4" /><span>첫 번째 핀 추가</span></button>
                     </div>
                 ) : (
-                    <div className="grid grid-cols-1 gap-6 pb-20">
+                    <div className="grid grid-cols-1 gap-8">
                         {displayedPins.map((item) => (
                             <PinCard key={item.id} pin={item} color={item.color} onUpdateNote={handleUpdateNote} onDeletePin={handleDeletePin} />
                         ))}
