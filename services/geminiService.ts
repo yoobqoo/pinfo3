@@ -166,26 +166,31 @@ export const scrapeMetadata = async (url: string) => {
 /**
  * 2. AI Insight Generator
  */
-export const generateAIInsight = async (url: string, title: string, context: string, platform: Platform) => {
+export const generateAIInsight = async (url: string, title: string, context: string, platform: Platform, intent?: string) => {
     try {
         const ai = new GoogleGenAI({ apiKey: process.env.API_KEY as string });
+        const intentHint = intent ? `\nUser's purpose for saving: ${intent}` : '';
         const response = await ai.models.generateContent({
-            model: "gemini-3-flash-preview",
-            contents: `URL: ${url}\nTitle: ${title}\nContext: ${context}\nPlatform: ${platform}`,
+            model: "gemini-2.5-flash",
+            contents: `URL: ${url}\nTitle: ${title}\nContext: ${context}\nPlatform: ${platform}${intentHint}`,
             config: {
-                systemInstruction: `Analyze concisely in Korean.
-                - Summary: 3 key bullet points.
+                systemInstruction: `Analyze in Korean and extract actionable tasks.
+                - Summary: 3 key bullet points about the content.
                 - Tags: 3 relevant keywords.
-                - Tone: Insightful and organized.
+                - Tasks: 1~3 concrete, immediately actionable to-do items the user can actually DO based on this content.
+                  (e.g. for a restaurant: "예약 전화하기", "카카오맵에 저장하기" / for a recipe: "장보기: 재료명들" / for an article: "팀에 공유하기")
+                  Tasks must be specific actions, not vague summaries. Keep each task under 25 characters.
+                - Tone: Insightful and action-oriented.
                 - Response must be pure JSON.`,
                 responseMimeType: "application/json",
                 responseSchema: {
                     type: Type.OBJECT,
                     properties: {
                         summary: { type: Type.STRING },
-                        tags: { type: Type.ARRAY, items: { type: Type.STRING } }
+                        tags: { type: Type.ARRAY, items: { type: Type.STRING } },
+                        tasks: { type: Type.ARRAY, items: { type: Type.STRING } }
                     },
-                    required: ["summary", "tags"]
+                    required: ["summary", "tags", "tasks"]
                 }
             }
         });
@@ -194,5 +199,5 @@ export const generateAIInsight = async (url: string, title: string, context: str
     } catch (e) {
         console.error("AI Error:", e);
     }
-    return { summary: context ? (context.substring(0, 100) + "...") : "저장되었습니다.", tags: [platform] };
+    return { summary: context ? (context.substring(0, 100) + "...") : "저장되었습니다.", tags: [platform], tasks: [] };
 };

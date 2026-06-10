@@ -70,7 +70,10 @@ export const fetchUserProjects = async (userId: string): Promise<Project[]> => {
                     createdAt: new Date(pin.created_at).getTime(),
                     thumbnailUrl: pin.thumbnail_url,
                     isAnalyzing: false,
-                    note: pin.note
+                    note: pin.note,
+                    intent: pin.intent,
+                    tasks: pin.tasks || [],
+                    completedTasks: pin.completedTasks || []
                 }))
         }));
     } catch (e) {
@@ -119,7 +122,10 @@ export const createPinInDb = async (userId: string, projectId: string, pin: Pin)
             platform: pin.platform,
             tags: pin.tags,
             thumbnail_url: pin.thumbnailUrl,
-            note: pin.note
+            note: pin.note,
+            intent: pin.intent,
+            tasks: pin.tasks || [],
+            completed_tasks: pin.completedTasks || []
         })
         .select()
         .single();
@@ -135,8 +141,21 @@ export const createPinInDb = async (userId: string, projectId: string, pin: Pin)
         createdAt: new Date(data.created_at).getTime(),
         thumbnailUrl: data.thumbnail_url,
         isAnalyzing: false,
-        note: data.note
+        note: data.note,
+        intent: data.intent,
+        tasks: data.tasks || [],
+        completedTasks: data.completed_tasks || []
     };
+};
+
+export const updatePinAIInDb = async (pinId: string, summary: string, tags: string[], tasks: string[]) => {
+    const { error } = await supabase.from('pins').update({ summary, tags, tasks }).eq('id', pinId);
+    return !error;
+};
+
+export const updatePinTasksInDb = async (pinId: string, completedTasks: number[]) => {
+    const { error } = await supabase.from('pins').update({ completed_tasks: completedTasks }).eq('id', pinId);
+    return !error;
 };
 
 export const updatePinNoteInDb = async (pinId: string, note: string) => {

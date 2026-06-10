@@ -27,6 +27,9 @@ export interface Pin {
   thumbnailUrl?: string;
   isAnalyzing?: boolean;
   note?: string;
+  intent?: string; // 저장 목적 (맛집/공부/쇼핑/여행/영감/업무)
+  tasks?: string[]; // AI가 추출한 실행 가능한 할 일 목록
+  completedTasks?: number[]; // 완료된 task의 인덱스
   author?: string; // 작성자 계정 명 (@username)
   authorProfileUrl?: string; // 작성자 프로필 주소
   platformId?: string; // 게시물 고유 ID (postId)
