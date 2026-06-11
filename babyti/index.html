@@ -3,6 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- Force AdSense-approved canonical domain (prevents direct babyti.vercel.app traffic) -->
+  <script>
+    (function(){
+      if (typeof window !== 'undefined' && location.hostname === 'babyti.vercel.app') {
+        location.replace('https://momplan.site/babyti/' + location.search + location.hash);
+      }
+    })();
+  </script>
   <title>우리 아기 성향 테스트 🍼 - 최신 영아 기질 연구 기반</title>
   <meta name="description" content="Rothbart IBQ-R, Pluess(2015) 환경 민감성 모델 기반 9유형 아기 기질 테스트. 10문항으로 알아보는 우리 아기의 진짜 성향.">
   <meta property="og:title" content="우리 아기 성향 테스트 🍼">
@@ -17,8 +25,14 @@
           integrity="sha384-DKYJZ8NLiK8MN4/C5P2dtSmLQ4KwPaoqAfyA/DfmEc1VDxu4yyC7wy6K1Hs90nka"
           crossorigin="anonymous"></script>
 
-  <!-- Google AdSense -->
+  <!-- Google AdSense + Auto Ads enable -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5180948563619303" crossorigin="anonymous"></script>
+  <script>
+    (adsbygoogle = window.adsbygoogle || []).push({
+      google_ad_client: "ca-pub-5180948563619303",
+      enable_page_level_ads: true
+    });
+  </script>
 
   <style>
     /* Pretendard */
@@ -254,7 +268,8 @@
     </div>
 
     <!-- MID AD -->
-    <div class="ad-mid"><span class="ad-placeholder">AD (320×100)</span></div>
+    <ins class="adsbygoogle ad-mid" style="display:block" data-ad-client="ca-pub-5180948563619303" data-ad-format="auto" data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
 
     <div class="action-area">
       <div class="share-row">
@@ -281,14 +296,16 @@
     <div class="result-card-area" id="tipFace"></div>
 
     <!-- TOP TIP AD -->
-    <div class="ad-mid"><span class="ad-placeholder">AD (320×100)</span></div>
+    <ins class="adsbygoogle ad-mid" style="display:block" data-ad-client="ca-pub-5180948563619303" data-ad-format="auto" data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
 
     <div class="tip-card">
       <div class="tip-card-body" id="tipBody"></div>
     </div>
 
     <!-- BOTTOM TIP AD -->
-    <div class="ad-mid"><span class="ad-placeholder">AD (320×100)</span></div>
+    <ins class="adsbygoogle ad-mid" style="display:block" data-ad-client="ca-pub-5180948563619303" data-ad-format="auto" data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
 
     <button class="btn-share" onclick="backToResult()">← 결과로 돌아가기</button>
   </div>
@@ -302,7 +319,10 @@
 </div><!-- /wrap -->
 
 <!-- BOTTOM FIXED AD -->
-<div class="ad-bottom-fixed"><span style="font-size:11px;color:#bbb;">AD</span></div>
+<div class="ad-bottom-fixed">
+  <ins class="adsbygoogle" style="display:inline-block;width:100%;height:64px" data-ad-client="ca-pub-5180948563619303" data-ad-format="auto" data-full-width-responsive="true"></ins>
+  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+</div>
 
 <script>
 /* ────────────────────────────────────────
