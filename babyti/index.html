@@ -8,8 +8,9 @@
   <meta property="og:title" content="우리 아기 성향 테스트 🍼">
   <meta property="og:description" content="최신 영아 기질 연구 기반 9유형 테스트! 닮은 인물까지 알려드려요">
   <meta property="og:type" content="website">
-  <meta property="og:url" content="https://babyti.vercel.app">
-  <meta property="og:image" content="https://babyti.vercel.app/baby-cards/hero.png">
+  <meta property="og:url" content="https://momplan.site/babyti/">
+  <meta property="og:image" content="https://momplan.site/babyti/baby-cards/hero.png">
+  <link rel="canonical" href="https://momplan.site/babyti/">
 
   <!-- Kakao JS SDK (공유 기능용) -->
   <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js"
@@ -763,11 +764,13 @@ function showResult() {
   renderResult(sBand + nBand);
 }
 
+const SHARE_BASE = 'https://momplan.site/babyti/';
+
 function shareToKakao() {
   if (!resultType) return;
   const p = PERSONALITIES[resultType];
-  const url = location.href.split('#')[0];
-  const imageUrl = `${location.origin}/baby-cards/${resultType}.png`;
+  const url = SHARE_BASE;
+  const imageUrl = `${SHARE_BASE}baby-cards/${resultType}.png`;
   const description = `${p.subTitle} (${p.title}) ${p.emoji}\n"${p.intro}"`;
   if (window.Kakao && window.Kakao.isInitialized && window.Kakao.isInitialized() && window.Kakao.Share) {
     window.Kakao.Share.sendDefault({
@@ -788,7 +791,7 @@ function shareToKakao() {
 function copyShareLink() {
   if (!resultType) return;
   const p = PERSONALITIES[resultType];
-  const url = location.href.split('#')[0];
+  const url = SHARE_BASE;
   const text = `우리 아기는 ${p.subTitle}! ${p.emoji}\n${url}`;
   if (navigator.clipboard && navigator.clipboard.writeText) {
     navigator.clipboard.writeText(text)
