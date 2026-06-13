@@ -27,12 +27,6 @@
 
   <!-- Google AdSense + Auto Ads enable -->
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5180948563619303" crossorigin="anonymous"></script>
-  <script>
-    (adsbygoogle = window.adsbygoogle || []).push({
-      google_ad_client: "ca-pub-5180948563619303",
-      enable_page_level_ads: true
-    });
-  </script>
 
   <style>
     /* Pretendard */
@@ -57,14 +51,12 @@
       min-height:100vh;
       display:flex; flex-direction:column; align-items:center;
     }
-    .wrap { width:100%; max-width:480px; min-height:100vh; display:flex; flex-direction:column; padding-bottom:64px; }
+    .wrap { width:100%; max-width:480px; min-height:100vh; display:flex; flex-direction:column; }
 
-    .ad-placeholder { font-size:11px; color:rgba(255,255,255,0.5); letter-spacing:0.5px; }
-    .site-footer { text-align:center; padding:32px 20px 88px; font-size:11px; color:var(--muted); line-height:1.7; }
+    .site-footer { text-align:center; padding:32px 20px; font-size:11px; color:var(--muted); line-height:1.7; }
     .site-footer a { color:inherit; text-decoration:underline; }
     .site-footer .footer-copy { margin-top:6px; opacity:.7; }
-    .ad-bottom-fixed { position:fixed; bottom:0; left:50%; transform:translateX(-50%); width:100%; max-width:480px; height:64px; background:rgba(255,255,255,0.97); border-top:1px solid #e5e5e5; display:flex; align-items:center; justify-content:center; z-index:200; }
-    .ad-mid { width:100%; min-height:100px; background:rgba(0,0,0,0.08); border-radius:16px; display:flex; align-items:center; justify-content:center; margin-bottom:16px; }
+    .ad-mid { display:flex; align-items:center; justify-content:center; margin:0 auto 16px; max-width:100%; }
 
     .page { display:none; flex-direction:column; align-items:center; flex:1; padding:28px 20px 32px; animation:fadeIn .35s ease; }
     .page.active { display:flex; }
@@ -268,7 +260,7 @@
     </div>
 
     <!-- MID AD -->
-    <ins class="adsbygoogle ad-mid" style="display:block" data-ad-client="ca-pub-5180948563619303" data-ad-format="auto" data-full-width-responsive="true"></ins>
+    <ins class="adsbygoogle ad-mid" style="display:inline-block;width:300px;height:250px;max-width:100%" data-ad-client="ca-pub-5180948563619303" data-ad-format="rectangle"></ins>
     <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
 
     <div class="action-area">
@@ -296,7 +288,7 @@
     <div class="result-card-area" id="tipFace"></div>
 
     <!-- TOP TIP AD -->
-    <ins class="adsbygoogle ad-mid" style="display:block" data-ad-client="ca-pub-5180948563619303" data-ad-format="auto" data-full-width-responsive="true"></ins>
+    <ins class="adsbygoogle ad-mid" style="display:inline-block;width:300px;height:250px;max-width:100%" data-ad-client="ca-pub-5180948563619303" data-ad-format="rectangle"></ins>
     <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
 
     <div class="tip-card">
@@ -304,7 +296,7 @@
     </div>
 
     <!-- BOTTOM TIP AD -->
-    <ins class="adsbygoogle ad-mid" style="display:block" data-ad-client="ca-pub-5180948563619303" data-ad-format="auto" data-full-width-responsive="true"></ins>
+    <ins class="adsbygoogle ad-mid" style="display:inline-block;width:300px;height:250px;max-width:100%" data-ad-client="ca-pub-5180948563619303" data-ad-format="rectangle"></ins>
     <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
 
     <button class="btn-share" onclick="backToResult()">← 결과로 돌아가기</button>
@@ -319,10 +311,6 @@
 </div><!-- /wrap -->
 
 <!-- BOTTOM FIXED AD -->
-<div class="ad-bottom-fixed">
-  <ins class="adsbygoogle" style="display:inline-block;width:100%;height:64px" data-ad-client="ca-pub-5180948563619303" data-ad-format="auto" data-full-width-responsive="true"></ins>
-  <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
-</div>
 
 <script>
 /* ────────────────────────────────────────
