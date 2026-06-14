@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- Force AdSense-approved canonical domain -->
+  <script>
+    (function(){
+      if (typeof window !== 'undefined' && location.hostname === 'babyti.vercel.app') {
+        location.replace('https://momplan.site/babyti/result.html' + location.search + location.hash);
+      }
+    })();
+  </script>
+  <title>우리 아기 성향 테스트 결과 🍼 - 베비티아이</title>
+  <meta name="description" content="9유형 영아 기질 테스트 결과. 우리 아기의 성향 카드 + 닮은 인물 + 맞춤 육아 팁.">
+  <meta property="og:title" content="우리 아기 성향 테스트 결과 🍼">
+  <meta property="og:description" content="최신 영아 기질 연구 기반 9유형 테스트! 닮은 인물까지 알려드려요">
+  <meta property="og:type" content="article">
+  <meta property="og:url" content="https://momplan.site/babyti/result.html">
+  <meta property="og:image" content="https://momplan.site/babyti/baby-cards/hero.png">
+  <link rel="canonical" href="https://momplan.site/babyti/result.html">
+
+  <!-- Kakao JS SDK -->
+  <script src="https://t1.kakaocdn.net/kakao_js_sdk/2.7.4/kakao.min.js"
+          integrity="sha384-DKYJZ8NLiK8MN4/C5P2dtSmLQ4KwPaoqAfyA/DfmEc1VDxu4yyC7wy6K1Hs90nka"
+          crossorigin="anonymous"></script>
+
+  <!-- Google AdSense -->
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5180948563619303" crossorigin="anonymous"></script>
+
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===== RESULT ===== -->
+  <div id="page-result" class="page active">
+    <div class="result-eyebrow">우리 아기 성향은...</div>
+    <div class="result-card-area" id="rFace"></div>
+    <div class="result-type-label" id="rTypeLabel"></div>
+    <div class="rarity-badge" id="rRarity"></div>
+
+    <div class="result-card">
+      <div class="result-hashtags" id="rHashtags"></div>
+      <div class="result-desc" id="rDesc"></div>
+    </div>
+
+    <div class="matrix-card">
+      <div class="matrix-title">📊 9가지 유형 좌표</div>
+      <div class="matrix-sub">외향성(가로) × 환경 민감성(세로) 축으로 본 우리 아기의 위치</div>
+      <div class="matrix-wrap">
+        <div class="matrix-y-label">민감성</div>
+        <div class="matrix-y-high">높음</div>
+        <div class="matrix-y-line"></div>
+        <div class="matrix-y-low">낮음</div>
+        <div class="matrix-grid" id="rMatrix"></div>
+        <div class="matrix-x-low">낮음</div>
+        <div class="matrix-x-line"></div>
+        <div class="matrix-x-high">높음</div>
+        <div class="matrix-x-label">외향성</div>
+      </div>
+      <div class="matrix-legend" id="rMatrixLegend"></div>
+    </div>
+
+    <div class="famous-card">
+      <div class="famous-title">🌟 비슷한 성향으로 추정되는 인물</div>
+      <div class="famous-sub">※ 성격 유형 매칭은 재미 요소로, 과학적 근거에 기반한<br>내용이 아닙니다</div>
+      <div class="famous-list" id="rFamous"></div>
+    </div>
+
+    <button class="tip-cta" onclick="showTipPage()">
+      <img class="tip-cta-icon" src="baby-cards/hero-transparent.webp" alt="">
+      <span class="tip-cta-text">
+        <span class="tip-cta-title">우리 아기에게 잘 맞는 육아 팁</span>
+        <span class="tip-cta-sub">기질에 맞춘 맞춤 가이드 보기 →</span>
+      </span>
+    </button>
+
+    <div class="citation-card">
+      <div class="citation-title">📖 이론적 근거</div>
+      <div class="citation-body" id="rCitation"></div>
+    </div>
+
+    <!-- MID AD -->
+    <ins class="adsbygoogle ad-mid" style="display:inline-block;width:300px;height:250px;max-width:100%" data-ad-client="ca-pub-5180948563619303" data-ad-format="rectangle"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+    <div class="action-area">
+      <div class="share-row">
+        <button class="btn-share btn-kakao" onclick="shareToKakao()">
+          <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 3C6.48 3 2 6.58 2 11c0 2.86 1.87 5.36 4.69 6.78-.2.71-.74 2.66-.84 3.07-.13.51.19.5.39.36.16-.11 2.55-1.74 3.58-2.45.71.1 1.44.16 2.18.16 5.52 0 10-3.58 10-8s-4.48-8-10-8z"/></svg>
+          카카오톡 공유
+        </button>
+        <button class="btn-share btn-copy" onclick="copyShareLink()">🔗 링크 복사</button>
+      </div>
+      <button class="btn-retry" onclick="restartQuiz()">다시 테스트하기</button>
+    </div>
+  </div>
+
+  <!-- ===== TIP PAGE ===== -->
+  <div id="page-tip" class="page">
+    <button class="btn-back tip-back-top" onclick="backToResult()">← 결과로 돌아가기</button>
+
+    <div class="tip-hero">
+      <div class="tip-hero-emoji">💡</div>
+      <div class="tip-hero-title">우리 아기에게<br>잘 맞는 육아 팁</div>
+      <div class="tip-hero-sub" id="tipHeroSub"></div>
+    </div>
+
+    <div class="result-card-area" id="tipFace"></div>
+
+    <!-- TOP TIP AD -->
+    <ins class="adsbygoogle ad-mid" style="display:inline-block;width:300px;height:250px;max-width:100%" data-ad-client="ca-pub-5180948563619303" data-ad-format="rectangle"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+    <div class="tip-card">
+      <div class="tip-card-body" id="tipBody"></div>
+    </div>
+
+    <!-- BOTTOM TIP AD -->
+    <ins class="adsbygoogle ad-mid" style="display:inline-block;width:300px;height:250px;max-width:100%" data-ad-client="ca-pub-5180948563619303" data-ad-format="rectangle"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+
+    <button class="btn-share" onclick="backToResult()">← 결과로 돌아가기</button>
+  </div>
+
+  <!-- SITE FOOTER -->
+  <footer class="site-footer">
+    <div>개발 · 문의 <a href="mailto:unspired100@gmail.com">unspired100@gmail.com</a></div>
+    <div class="footer-copy">© 2026 babyti. All rights reserved.</div>
+  </footer>
+
+</div><!-- /wrap -->
+
+<script src="shared.js"></script>
+<script>
+  // Bootstrap from ?type=XX query param
+  (function() {
+    const params = new URLSearchParams(location.search);
+    const t = params.get('type');
+    if (t && typeof PERSONALITIES !== 'undefined' && PERSONALITIES[t]) {
+      renderResult(t);
+    } else {
+      location.replace('./');
+    }
+  })();
+</script>
+</body>
+</html>
