@@ -188,7 +188,7 @@
 
   <!-- ===== INTRO ===== -->
   <div id="page-intro" class="page active">
-    <img class="intro-hero" src="baby-cards/hero.png" alt="베비티아이">
+    <img class="intro-hero" src="baby-cards/hero.webp" alt="베비티아이">
     <h1 class="intro-title">베비티아이</h1>
     <p class="intro-sub">10문항으로 알아보는<br>우리 아기 성향</p>
     <button class="btn-start" onclick="startQuiz()">테스트 시작하기 →</button>
@@ -247,7 +247,7 @@
     </div>
 
     <button class="tip-cta" onclick="showTipPage()">
-      <img class="tip-cta-icon" src="baby-cards/hero-transparent.png" alt="">
+      <img class="tip-cta-icon" src="baby-cards/hero-transparent.webp" alt="">
       <span class="tip-cta-text">
         <span class="tip-cta-title">우리 아기에게 잘 맞는 육아 팁</span>
         <span class="tip-cta-sub">기질에 맞춘 맞춤 가이드 보기 →</span>
@@ -646,7 +646,7 @@ const PERSONALITIES = {
 ──────────────────────────────────────── */
 function cardImg(type, className = '') {
   const p = PERSONALITIES[type];
-  return `<img class="${className}" src="baby-cards/${type}.png" alt="${p.subTitle} — ${p.title}" loading="lazy">`;
+  return `<img class="${className}" src="baby-cards/${type}.webp" alt="${p.subTitle} — ${p.title}" loading="lazy">`;
 }
 
 
@@ -687,7 +687,11 @@ function renderQuestion() {
   document.getElementById('progressFill').style.width = `${(currentQ / total) * 100}%`;
   document.getElementById('progressLabel').textContent = `${currentQ + 1} / ${total}`;
   document.getElementById('qAxisTag').textContent = q.axis === 'S' ? '외향성 (Surgency)' : '환경 민감성 (Sensitivity)';
-  document.getElementById('qImage').src = `baby-cards/q${currentQ + 1}.png`;
+  document.getElementById('qImage').src = `baby-cards/q${currentQ + 1}.webp`;
+  // Preload next 1~2 question images so transitions feel instant
+  [currentQ + 2, currentQ + 3].forEach(n => {
+    if (n >= 1 && n <= total) { const im = new Image(); im.src = `baby-cards/q${n}.webp`; }
+  });
   document.getElementById('qText').textContent = q.text;
 
   const card = document.getElementById('qCard');
