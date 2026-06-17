@@ -64,7 +64,6 @@
       <div class="q-text" id="qText"></div>
       <div class="options" id="optionsList"></div>
     </div>
-    <button class="btn-back" id="qBackBtn" onclick="goBack()">← 이전으로</button>
   </div>
 
   <!-- KAKAO ADFIT (bottom of intro/quiz pages only) -->
@@ -75,6 +74,9 @@
          data-ad-height="100"></ins>
   </div>
   <script type="text/javascript" src="//t1.kakaocdn.net/kas/static/ba.min.js" async></script>
+
+  <!-- BACK BUTTON (quiz only; shown via JS) -->
+  <button class="btn-back" id="qBackBtn" onclick="goBack()" hidden>← 이전으로</button>
 
   <!-- SITE FOOTER -->
   <footer class="site-footer">
@@ -220,7 +222,7 @@ function renderQuestion() {
 
   const backBtn = document.getElementById('qBackBtn');
   backBtn.disabled = currentQ === 0;
-  backBtn.style.visibility = currentQ === 0 ? 'hidden' : 'visible';
+  backBtn.hidden = currentQ === 0;
 }
 
 function goBack() {
