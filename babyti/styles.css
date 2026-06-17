@@ -25,7 +25,7 @@ body {
 .site-footer { text-align:center; padding:32px 20px; font-size:11px; color:var(--muted); line-height:1.7; }
 .site-footer a { color:inherit; text-decoration:underline; }
 .site-footer .footer-copy { margin-top:6px; opacity:.7; }
-.ad-mid { display:flex; align-items:center; justify-content:center; margin:0 auto 16px; max-width:100%; }
+.ad-mid { display:block; width:300px; height:250px; max-width:100%; margin:8px auto 16px; overflow:hidden; }
 
 .page { display:none; flex-direction:column; align-items:center; flex:1; padding:28px 20px 32px; animation:fadeIn .35s ease; }
 .page.active { display:flex; }
@@ -37,7 +37,7 @@ body {
 
 .intro-title { font-family:'SlowGothic', 'Pretendard', sans-serif; font-size:52px; font-weight:400; color:var(--text); text-align:center; line-height:1.1; margin-bottom:14px; letter-spacing:-1px; }
 .intro-sub { font-size:15px; color:var(--text); text-align:center; line-height:1.7; margin-bottom:14px; }
-.intro-science { font-size:11px; color:var(--muted); text-align:center; line-height:1.6; margin-top:auto; padding-top:32px; max-width:320px; }
+.intro-science { font-size:11px; color:var(--muted); text-align:center; line-height:1.6; margin-top:24px; max-width:320px; }
 .btn-start { background:var(--accent); color:#fff; border:none; padding:18px 52px; border-radius:50px; font-size:18px; font-weight:700; font-family:inherit; cursor:pointer; box-shadow:0 8px 28px rgba(94,207,190,0.35); transition:transform .12s, box-shadow .12s; }
 .btn-start:active { transform:scale(.96); box-shadow:0 4px 12px rgba(94,207,190,0.25); }
 .intro-tag { margin-top:20px; font-size:12px; color:var(--muted); }
@@ -52,7 +52,7 @@ body {
 
 .q-card { background:#fff; border:1px solid #eee; border-radius:24px; padding:24px 22px; box-shadow:0 8px 32px rgba(0,0,0,0.04); margin-bottom:14px; animation:slideIn .3s ease; }
 @keyframes slideIn { from {opacity:0; transform:translateX(20px);} to {opacity:1; transform:translateX(0);} }
-.q-image-wrap { width:calc(100% + 40px); margin:0 -20px 16px; aspect-ratio:16/9; overflow:hidden; position:relative; }
+.q-image-wrap { width:70%; margin:0 auto 16px; aspect-ratio:20/9; overflow:hidden; position:relative; }
 .q-image { position:absolute; top:50%; left:50%; width:200%; height:auto; transform:translate(-50%, -50%); display:block; }
 .q-text { font-size:17px; font-weight:700; color:var(--text); line-height:1.55; margin-bottom:20px; }
 .options { display:flex; flex-direction:column; gap:10px; }
@@ -66,6 +66,8 @@ body {
 /* RESULT */
 .result-eyebrow { font-family:'Pretendard',sans-serif; font-size:22px; font-weight:700; color:var(--text); text-align:center; line-height:1.15; margin-bottom:18px; letter-spacing:-0.8px; }
 .result-card-area { width:calc(100% + 40px); max-width:none; margin:0 -20px 8px; aspect-ratio:5/8; overflow:hidden; position:relative; animation:floatGentle 4s ease-in-out infinite; }
+.result-card-area.pop-in { animation:popIn .7s cubic-bezier(.18,.89,.32,1.28) both, floatGentle 4s ease-in-out infinite .7s; }
+@keyframes popIn { 0%{opacity:0; transform:scale(.5) rotate(-8deg);} 60%{opacity:1; transform:scale(1.06) rotate(2deg);} 100%{opacity:1; transform:scale(1) rotate(0);} }
 .result-card-img { position:absolute; top:50%; left:50%; width:300%; height:auto; transform:translate(-50%, -50%); display:block; }
 @keyframes floatGentle { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-5px);} }
 .result-type-label { font-size:16px; font-weight:900; color:var(--text); text-align:center; margin-bottom:8px; letter-spacing:-0.2px; }

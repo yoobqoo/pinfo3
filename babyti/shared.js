@@ -45,7 +45,7 @@ const PERSONALITIES = {
     catch:'깊이 생각하고 차분히 행동하는 아기',
     rarity:'전체 인구 중 약 12% 수준',
     tags:['#사고력','#관찰력','#신중함','#깊이있음'],
-    desc:'행동보다 관찰을 먼저 하는, 머릿속에서 많은 일이 일어나는 아기예요. 익숙해질 때까지 충분히 살피고 한 가지에 깊이 빠져드는 경향이 있어요. Rothbart IBQ-R 연구에서 낮은 Surgency + 중간 Orienting 패턴에 해당하며, 사고력이 일찍 발달하는 타입이에요.',
+    desc:'행동보다 관찰을 먼저 하는, 머릿속에서 많은 일이 일어나는 아기예요. 익숙해질 때까지 충분히 살피고 한 가지에 깊이 빠져드는 경향이 있어요. Rothbart IBQ-R 연구에서 외향성은 낮고 주의 집중력은 중간인 패턴에 해당하며, 사고력이 일찍 발달하는 타입이에요.',
     traits:['🦉 관찰력','🧠 사고력','⚖️ 신중함','🎯 집중력'],
     famous:[
       { name:'아인슈타인', role:'물리학자' },
@@ -175,7 +175,7 @@ const PERSONALITIES = {
     catch:'안 가본 길도 망설임 없이 가는 아기',
     rarity:'전체 인구 중 약 9% 수준',
     tags:['#추진력','#용기','#독립심','#리더십'],
-    desc:'두려움이 적고 호기심은 강한, 어디든 먼저 뛰어드는 행동파 아기예요. 자극에 둔감해 좀처럼 위축되지 않아요. Rothbart의 Surgency 高 + Negative Affectivity 低 조합으로, 미래의 개척자 자질을 가진 기질이에요.',
+    desc:'두려움이 적고 호기심은 강한, 어디든 먼저 뛰어드는 행동파 아기예요. 자극에 둔감해 좀처럼 위축되지 않아요. Rothbart 연구에서 외향성은 높고 부정적 정서는 낮은 조합으로, 미래의 개척자 자질을 가진 기질이에요.',
     traits:['🚀 추진력','💪 용기','🦁 독립심','🎯 결단력'],
     famous:[
       { name:'일론 머스크', role:'테슬라 CEO' },
@@ -201,7 +201,7 @@ const PERSONALITIES = {
     catch:'사람들이 자연스레 따르는 아기',
     rarity:'전체 인구 중 약 11% 수준',
     tags:['#카리스마','#리더십','#표현력','#사교성'],
-    desc:'활발하면서도 상황을 잘 파악하는, 타고난 리더 기질의 아기예요. 다른 사람의 관심을 받는 걸 즐기고 분위기를 잘 이끌어요. 높은 Surgency와 적당한 Sensitivity의 균형은 사회적 성공과 강한 상관을 보이는 패턴이에요.',
+    desc:'활발하면서도 상황을 잘 파악하는, 타고난 리더 기질의 아기예요. 다른 사람의 관심을 받는 걸 즐기고 분위기를 잘 이끌어요. 높은 외향성과 적당한 민감성의 균형은 사회적 성공과 강한 상관을 보이는 패턴이에요.',
     traits:['👑 카리스마','🌟 리더십','🎤 표현력','🤝 사교성'],
     famous:[
       { name:'버락 오바마', role:'전 미 대통령' },
@@ -301,6 +301,24 @@ function renderResult(type) {
     </div>`).join('');
 
   showPage('page-result');
+  celebrateResult();
+}
+
+/* Pop-in entrance + confetti burst (called once when result first renders) */
+function celebrateResult() {
+  const face = document.getElementById('rFace');
+  if (face) {
+    face.classList.remove('pop-in');
+    void face.offsetWidth; // restart animation
+    face.classList.add('pop-in');
+  }
+  if (typeof confetti !== 'function') return;
+  const colors = ['#5ECFBE', '#FEE500', '#FF8FA3', '#A78BFA', '#FFD166'];
+  // Center burst
+  confetti({ particleCount: 90, spread: 75, startVelocity: 45, origin: { y: 0.35 }, colors });
+  // Side cannons (staggered)
+  setTimeout(() => confetti({ particleCount: 50, angle: 60, spread: 55, origin: { x: 0, y: 0.6 }, colors }), 180);
+  setTimeout(() => confetti({ particleCount: 50, angle: 120, spread: 55, origin: { x: 1, y: 0.6 }, colors }), 320);
 }
 
 function showTipPage() {
