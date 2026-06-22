@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <!-- Force AdSense-approved canonical domain (prevents direct babyti.vercel.app traffic) -->
+  <script>
+    (function(){
+      if (typeof window !== 'undefined' && location.hostname === 'babyti.vercel.app') {
+        location.replace('https://momplan.site/babyti/en/' + location.search + location.hash);
+      }
+    })();
+  </script>
+  <title>Baby Temperament Test 🍼 — Based on Modern Infant Research</title>
+  <meta name="description" content="A 9-type baby temperament test grounded in Rothbart's IBQ-R and Pluess's (2015) environmental sensitivity model. Discover your baby's true nature in just 10 questions.">
+  <meta property="og:title" content="Baby Temperament Test 🍼">
+  <meta property="og:description" content="A modern, research-based 9-type baby temperament test — see which famous figures share your baby's vibe.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://momplan.site/babyti/en/">
+  <meta property="og:image" content="https://momplan.site/babyti/baby-cards/hero.png">
+  <link rel="canonical" href="https://momplan.site/babyti/en/">
+  <link rel="alternate" hreflang="ko" href="https://momplan.site/babyti/">
+  <link rel="alternate" hreflang="en" href="https://momplan.site/babyti/en/">
+  <link rel="alternate" hreflang="x-default" href="https://momplan.site/babyti/">
+
+  <!-- TODO: AdSense slot for EN traffic — to be added when ad-unit is provisioned -->
+
+  <!-- Google Analytics (GA4) — split KO/EN via content_group dimension -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-72CZHPBLEP"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', 'G-72CZHPBLEP', { content_group: 'en' });
+  </script>
+
+  <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+<div class="wrap">
+
+  <!-- ===== INTRO ===== -->
+  <div id="page-intro" class="page active">
+    <img class="intro-hero" src="../baby-cards/hero.webp" alt="Babyti">
+    <h1 class="intro-title">Babyti</h1>
+    <p class="intro-sub">Discover your baby's temperament<br>in 10 questions</p>
+    <button class="btn-start" onclick="startQuiz()">Start the test →</button>
+    <span class="intro-tag">10 questions · ~2 min · Best for ages 3–24 months</span>
+    <div class="intro-science">📚 Based on Rothbart's IBQ-R and Pluess (2015) environmental sensitivity model</div>
+  </div>
+
+  <!-- ===== QUIZ ===== -->
+  <div id="page-quiz" class="page">
+    <div class="progress-wrap">
+      <div class="progress-track"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+      <span class="progress-label" id="progressLabel">1 / 10</span>
+    </div>
+    <div class="q-image-wrap"><img class="q-image" id="qImage" alt=""></div>
+    <div class="q-card" id="qCard">
+      <span class="axis-tag" id="qAxisTag"></span>
+      <div class="q-text" id="qText"></div>
+      <div class="options" id="optionsList"></div>
+    </div>
+  </div>
+
+  <!-- TODO: AdSense banner slot for EN traffic — Kakao AdFit removed (Korea-only) -->
+
+  <!-- BACK BUTTON (quiz only; shown via JS) -->
+  <button class="btn-back" id="qBackBtn" onclick="goBack()" hidden>← Back</button>
+
+  <!-- SITE FOOTER -->
+  <footer class="site-footer">
+    <div>Contact <a href="mailto:unspired100@gmail.com">unspired100@gmail.com</a></div>
+    <div class="footer-copy">© 2026 babyti. All rights reserved.</div>
+    <div class="footer-copy"><a href="../">🇰🇷 한국어</a> · 🇺🇸 English (current)</div>
+  </footer>
+
+</div><!-- /wrap -->
+
+<script src="shared.js"></script>
+<script>
+
+/* ────────────────────────────────────────
+   QUESTIONS (10 items)
+   axis: 'S' = Surgency, 'N' = Sensitivity
+   weights: 0~3 per option, sum per axis = 0~15
+──────────────────────────────────────── */
+const QUESTIONS = [
+  // ── Surgency — 5 items ──
+  { axis:'S', emoji:'👥', text:'When your baby meets someone new for the first time, what do they usually do?',
+    options:[
+      { text:'Reaches out right away and greets them warmly', w:3 },
+      { text:'Warms up quickly and gets along well', w:2 },
+      { text:'Watches for a moment, then slowly opens up', w:1 },
+      { text:'Stays close to a parent until they feel safe', w:0 }
+    ]},
+  { axis:'S', emoji:'🏃', text:'How does your baby move around when they\'re awake?',
+    options:[
+      { text:'Bursting with energy, always on the move', w:3 },
+      { text:'Active and playful most of the time', w:2 },
+      { text:'A balanced mix of movement and rest', w:1 },
+      { text:'Happy to play quietly in one spot', w:0 }
+    ]},
+  { axis:'S', emoji:'😊', text:'How often does your baby laugh on a typical day?',
+    options:[
+      { text:'Belly-laughs out loud, often and easily', w:3 },
+      { text:'Very expressive — smiles and laughs a lot', w:2 },
+      { text:'Quiet, gentle smiles when in a good mood', w:1 },
+      { text:'Shows feelings through calm, subtle expressions', w:0 }
+    ]},
+  { axis:'S', emoji:'🗣️', text:'How does your baby use babble or sounds?',
+    options:[
+      { text:'Babbles nonstop, like a tiny chatterbox', w:3 },
+      { text:'Makes lots of sounds, very expressive', w:2 },
+      { text:'Speaks up clearly when they want something', w:1 },
+      { text:'Mostly communicates with looks and gestures', w:0 }
+    ]},
+  { axis:'S', emoji:'🧸', text:'When you show your baby a brand-new toy, what happens?',
+    options:[
+      { text:'Dives in immediately and plays with excitement', w:3 },
+      { text:'Approaches with curiosity and touches it quickly', w:2 },
+      { text:'Studies it first, then plays at their own pace', w:1 },
+      { text:'Observes carefully and only touches once comfortable', w:0 }
+    ]},
+
+  // ── Sensitivity — 5 items ──
+  { axis:'N', emoji:'🔊', text:'How does your baby react to sudden sounds or bright lights?',
+    options:[
+      { text:'Notices even the tiniest change and reacts right away', w:3 },
+      { text:'Picks up on it sensitively — you can see it on their face', w:2 },
+      { text:'Pauses briefly, then refocuses', w:1 },
+      { text:'Hardly bothered — keeps doing what they were doing', w:0 }
+    ]},
+  { axis:'N', emoji:'😢', text:'How long does it take your baby to calm down after crying or being startled?',
+    options:[
+      { text:'Feels it deeply — needs lots of soothing to recover', w:3 },
+      { text:'Settles slowly once being held', w:2 },
+      { text:'A few gentle pats and they bounce back', w:1 },
+      { text:'Pulls themselves together pretty much on their own', w:0 }
+    ]},
+  { axis:'N', emoji:'🔄', text:'How does your baby respond when their routine or environment changes?',
+    options:[
+      { text:'Senses every shift and needs plenty of time to adjust', w:3 },
+      { text:'Cautious at first, but gradually gets used to it', w:2 },
+      { text:'Takes a moment to look around, then adapts naturally', w:1 },
+      { text:'Goes with the flow no matter where they are', w:0 }
+    ]},
+  { axis:'N', emoji:'👀', text:'Does your baby notice small changes in your expression or new things in the room?',
+    options:[
+      { text:'Catches even the tiniest details', w:3 },
+      { text:'Picks up on shifts in mood pretty well', w:2 },
+      { text:'Clearly notices the more obvious changes', w:1 },
+      { text:'Stays focused on what they\'re doing and just rolls with it', w:0 }
+    ]},
+  { axis:'N', emoji:'🎪', text:'What is your baby like after a crowded outing or a long day out?',
+    options:[
+      { text:'Soaks in a lot — really needs downtime to recover', w:3 },
+      { text:'More sensitive than usual, wants some quiet time', w:2 },
+      { text:'A little tired, but back to normal soon', w:1 },
+      { text:'Actually more energized — fueled by the excitement', w:0 }
+    ]}
+];
+
+/* ────────────────────────────────────────
+   QUIZ STATE  (resultType lives in shared.js)
+──────────────────────────────────────── */
+let surgencyScore = 0;
+let sensitivityScore = 0;
+let currentQ = 0;
+let lastWeight = { S:0, N:0 }; // for tie-breaking
+let answers = []; // {axis, weight} per question for back navigation
+
+function resetQuiz() {
+  surgencyScore = 0;
+  sensitivityScore = 0;
+  currentQ = 0;
+  lastWeight = { S:0, N:0 };
+  answers = [];
+}
+
+function startQuiz() {
+  resetQuiz();
+  showPage('page-quiz');
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = QUESTIONS[currentQ];
+  const total = QUESTIONS.length;
+
+  document.getElementById('progressFill').style.width = `${(currentQ / total) * 100}%`;
+  document.getElementById('progressLabel').textContent = `${currentQ + 1} / ${total}`;
+  document.getElementById('qAxisTag').textContent = q.axis === 'S' ? 'Surgency' : 'Sensitivity';
+  document.getElementById('qImage').src = `../baby-cards/q${currentQ + 1}.webp`;
+  // Preload next 1~2 question images so transitions feel instant
+  [currentQ + 2, currentQ + 3].forEach(n => {
+    if (n >= 1 && n <= total) { const im = new Image(); im.src = `../baby-cards/q${n}.webp`; }
+  });
+  document.getElementById('qText').textContent = q.text;
+
+  const card = document.getElementById('qCard');
+  card.style.animation = 'none'; card.offsetHeight; card.style.animation = '';
+
+  const list = document.getElementById('optionsList');
+  list.innerHTML = '';
+  q.options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'opt-btn';
+    btn.textContent = opt.text;
+    btn.addEventListener('click', () => pickOption(q.axis, opt.w, btn));
+    list.appendChild(btn);
+  });
+
+  const backBtn = document.getElementById('qBackBtn');
+  backBtn.disabled = currentQ === 0;
+  backBtn.hidden = currentQ === 0;
+}
+
+function goBack() {
+  if (currentQ === 0) return;
+  currentQ--;
+  const prev = answers.pop();
+  if (prev) {
+    if (prev.axis === 'S') surgencyScore -= prev.weight;
+    else sensitivityScore -= prev.weight;
+  }
+  renderQuestion();
+}
+
+function pickOption(axis, weight, btn) {
+  document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
+  btn.classList.add('selected');
+
+  if (axis === 'S') surgencyScore += weight;
+  else sensitivityScore += weight;
+  lastWeight[axis] = weight;
+  answers[currentQ] = { axis, weight };
+
+  setTimeout(() => {
+    currentQ++;
+    if (currentQ < QUESTIONS.length) renderQuestion();
+    else showResult();
+  }, 350);
+}
+
+/* Convert raw score (0~15) → band (L/M/H)
+   Thresholds tuned to give ~30/40/30 marginal split (Lionetti 2018). */
+function toBand(score) {
+  if (score <= 6) return 'L';
+  if (score <= 8) return 'M';
+  return 'H';
+}
+
+function showResult() {
+  const sBand = toBand(surgencyScore);
+  const nBand = toBand(sensitivityScore);
+  // Navigate to standalone result page so AdSense gets a fresh pageview.
+  // No `.html` suffix — Vercel cleanUrls + `npx serve` both strip the extension.
+  location.href = 'result?type=' + sBand + nBand;
+}
+</script>
+</body>
+</html>
